@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kalocsáék Vendéglője 1957 — Teljes asztali nézet v7</title>
+<style>
+  :root{
+    --wine:#7a1c2b; --wine-deep:#591019; --terra:#b5532e; --terra-soft:#cd7a4c;
+    --gold:#c08a2e; --gold-light:#e3c074; --olive:#7c7b3f;
+    --cream:#f7efe1; --cream2:#fcf7ec; --paper:#fffdf8;
+    --ink:#3a2a22; --muted:#6e5d50; --terra-deep:#9a3f1f; --line:#e7dcc8;
+    --kc:#b81e2c; /* egyszínű kalocsai motívum (piros) */
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#e9e0cf;color:var(--ink);
+    font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.55}
+  h1,h2,h3,.serif{font-family:Georgia,"Times New Roman",serif}
+
+  .doc-head{background:linear-gradient(135deg,var(--wine),var(--wine-deep));color:#fff;
+    padding:38px 20px 30px;text-align:center;border-bottom:5px solid var(--gold)}
+  .doc-head .kicker{letter-spacing:3px;text-transform:uppercase;font-size:12px;color:var(--gold-light);font-weight:700}
+  .doc-head h1{margin:8px 0 4px;font-size:25px}
+  .doc-head p{margin:2px 0;color:#f0e0cf;font-size:14px}
+  .note{max-width:1000px;margin:20px auto 0;padding:0 20px;color:#5e4f44;font-size:13.5px;text-align:center}
+
+  .stage{padding:28px 16px 70px}
+  .device-block{margin:0 auto 54px;max-width:1320px}
+  .device-label{display:flex;align-items:center;gap:10px;justify-content:center;margin:0 0 16px;
+    color:var(--wine);font-weight:700;letter-spacing:.5px;font-size:15px;text-transform:uppercase}
+  .device-label .en{color:var(--muted);font-weight:600;text-transform:none;letter-spacing:0}
+  .row{display:flex;gap:40px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
+
+  .screen{container-type:inline-size;background:var(--cream2);overflow:hidden auto;position:relative}
+  .doc-head,.note,.stage,.ideas{display:none}
+  .screen.full{width:100%;min-height:100vh;height:auto;overflow:visible}
+  body{background:var(--cream2)}
+  .screen.full .hero{min-height:80vh}
+  .screen.full .hero .herobg{background-position:center 72%}
+  .screen::-webkit-scrollbar{width:9px}.screen::-webkit-scrollbar-thumb{background:#c9bca6;border-radius:6px}
+
+  .laptop{width:1200px;max-width:96vw;margin:0 auto}
+  .laptop .bezel{background:#1c1a17;border-radius:18px;padding:14px 14px 0;box-shadow:0 26px 60px rgba(0,0,0,.32)}
+  .laptop .bar{height:26px;display:flex;align-items:center;gap:7px;padding:0 14px}
+  .laptop .bar i{width:11px;height:11px;border-radius:50%;display:inline-block}
+  .laptop .bar .r{background:#ff5f57}.laptop .bar .y{background:#febc2e}.laptop .bar .g{background:#28c840}
+  .laptop .bar span{margin-left:14px;background:#2c2a25;color:#9a958a;font-size:11px;padding:3px 14px;border-radius:7px;flex:1;max-width:420px}
+  .laptop .screen{height:660px;border-radius:4px}
+  .laptop .stand{height:14px;background:#1c1a17;border-radius:0 0 18px 18px}
+  .laptop .foot{width:160px;height:11px;background:#b0a89a;border-radius:0 0 9px 9px;margin:0 auto;box-shadow:0 4px 8px rgba(0,0,0,.2)}
+
+  .tablet{width:560px;max-width:92vw}
+  .tablet .bd{background:#1c1a17;border-radius:28px;padding:46px 16px;box-shadow:0 22px 50px rgba(0,0,0,.3);position:relative}
+  .tablet .bd::before{content:"";position:absolute;top:20px;left:50%;transform:translateX(-50%);width:8px;height:8px;border-radius:50%;background:#3a3833}
+  .tablet .screen{height:720px;border-radius:6px}
+
+  .phone{width:330px;max-width:84vw}
+  .phone .bd{background:#1c1a17;border-radius:42px;padding:14px;box-shadow:0 22px 50px rgba(0,0,0,.3);position:relative}
+  .phone .notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:130px;height:26px;background:#1c1a17;border-radius:0 0 16px 16px;z-index:5}
+  .phone .screen{height:680px;border-radius:30px}
+
+  /* ===================== PAGE ===================== */
+  .page{font-size:15px;color:var(--ink);background:var(--cream2)}
+  .page img{display:block;width:100%;height:100%;object-fit:cover}
+
+  /* folk divider band — egyszínű kalocsai dísz */
+  .folk{display:block;width:100%;height:40px;background:var(--cream);color:var(--kc)}
+  .folk svg{display:block;width:100%;height:100%}
+
+  /* nav */
+  .nav{position:sticky;top:0;z-index:10;background:rgba(252,247,236,.97);backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:10px 18px;flex-wrap:nowrap;min-height:40px}
+  .nav .logo{display:flex;align-items:center;flex:0 0 auto;font-weight:800;color:var(--wine);font-size:17px;line-height:1.1;font-family:Georgia,serif;white-space:nowrap;padding-left:114px}
+  .nav .logo .yr{color:var(--gold);font-size:.66em;font-weight:700;letter-spacing:.5px;margin-left:3px}
+  .nav .brandtext{display:none}
+  .brandmark{position:absolute;left:14px;bottom:-45px;width:90px;height:90px;z-index:30;background:url('logo_atlatszo.png') center/contain no-repeat, radial-gradient(circle closest-side at 50% 50%, rgba(255,255,255,.9) 0%, rgba(255,255,255,.9) 80%, rgba(255,255,255,0) 100%)}
+  .nav .links{display:none;gap:16px;margin-left:auto;font-size:13px;font-weight:600;white-space:nowrap}
+  .nav .links a{color:var(--ink);text-decoration:none}.nav .links a:hover{color:var(--wine)}
+  .nav .cta{display:none;margin-left:auto;background:var(--gold);color:#3a2708;text-decoration:none;font-weight:800;font-size:13px;padding:12px 18px;border-radius:9px}
+  .nav .burger{margin-left:auto;font-size:22px;color:var(--wine);line-height:1}
+
+  /* hero */
+  .hero{position:relative;min-height:360px;display:flex;align-items:center;justify-content:center;text-align:center;color:#fff;overflow:hidden;background:#3a2118}
+  .hero .herobg{position:absolute;inset:0;background-position:center;background-size:cover;background-repeat:no-repeat;transition:opacity 1.4s ease;opacity:0}
+  .hero .herobg.table{background-image:url('kalocsa_table_2.png');opacity:1}
+  .hero .herobg.garden{background-image:url('https://cdn.website.dish.co/media/dc/ad/3211651/Kalocsaek-Vendegloje-21167069-1506550906050322-2998888195887132782-o.jpg')}
+  .hero.show-garden .herobg.table{opacity:0}
+  .hero.show-garden .herobg.garden{opacity:1}
+  .hero .scrim{position:absolute;inset:0;background:linear-gradient(rgba(45,14,18,.42) 0%,rgba(45,13,17,.55) 50%,rgba(38,10,14,.80) 100%)}
+  .hero .inner{position:relative;z-index:3;padding:48px 22px}
+  .hero .badge{display:inline-block;border:1px solid var(--gold-light);color:var(--gold-light);font-size:11px;font-weight:800;letter-spacing:2px;padding:5px 13px;border-radius:20px;text-transform:uppercase;background:rgba(40,12,16,.35)}
+  .hero h1{margin:14px 0 4px;font-size:32px;line-height:1.1;text-shadow:0 3px 18px rgba(0,0,0,.45)}
+  .hero .slogan{font-size:18px;color:var(--gold-light);font-style:italic;margin:0 0 6px;font-family:Georgia,serif}
+  .hero .sub{font-size:14px;color:#f4e7d6;margin:0 auto;max-width:440px;text-shadow:0 1px 8px rgba(0,0,0,.4)}
+  .hero .btns{margin-top:22px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;font-size:14px;padding:12px 22px;border-radius:11px;border:0;cursor:pointer}
+  .btn-primary{background:var(--gold);color:#3a2708}
+  .btn-wine{background:var(--wine);color:#fff}
+  .btn-ghost{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.65)}
+  .btn-outline{background:transparent;color:var(--wine);border:2px solid var(--wine);padding:10px 20px}
+  .btn-cream{background:var(--cream2);color:var(--wine)}
+
+  /* quick actions */
+  .quick{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line)}
+  .quick a{background:var(--paper);text-decoration:none;color:var(--wine);text-align:center;padding:16px 8px;font-weight:700;font-size:13px}
+  .quick a .ic{display:block;font-size:22px;margin-bottom:4px}
+  .quick a small{display:block;color:var(--muted);font-weight:500;font-size:11px;margin-top:2px}
+
+  /* sections */
+  .sec{padding:30px 22px}
+  .sec.alt{background:var(--cream)}
+  .eyebrow{display:flex;align-items:center;justify-content:center;gap:9px;color:var(--terra-deep);font-weight:800;letter-spacing:2px;text-transform:uppercase;font-size:11.5px;margin-bottom:6px}
+  .sec h2{color:var(--wine);font-size:23px;margin:0 0 4px;text-align:center}
+  .sec p.lead{text-align:center;color:#5e4f44;max-width:560px;margin:6px auto 0;font-size:14px}
+
+  /* cím-korona (girland) */
+  .crown-svg{display:block;margin:0 auto -2px;height:56px;color:var(--kc)}
+
+  /* story timeline */
+  .timeline{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+  .timeline div{background:var(--paper);border:1px solid var(--line);border-top:3px solid var(--gold);border-radius:10px;padding:11px 15px;text-align:center;min-width:80px}
+  .timeline b{display:block;color:var(--wine);font-size:17px;font-family:Georgia,serif}
+  .timeline small{color:var(--muted);font-size:11px}
+  /* Történetünk — kétoszlopos archív fotóval (A változat) */
+  .story-a{display:grid;gap:28px;align-items:center}
+  .story-a .va-text{text-align:center}
+  .story-a h2{color:var(--wine);font-size:26px;margin:0 0 10px;line-height:1.15}
+  .story-a .va-text .lead{max-width:none;margin:0 auto 14px}
+  .story-a .founders{font-size:13.5px;color:var(--muted);margin:0}
+  .story-a .founders b{color:var(--wine)}
+  .story-a .miniline{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin-top:18px}
+  .story-a .miniline div b{display:block;font-family:Georgia,serif;color:var(--wine);font-size:18px}
+  .story-a .miniline div small{color:var(--muted);font-size:11.5px}
+  .story-a .va-photo{position:relative;max-width:560px;width:100%;margin:0 auto}
+  .story-a .va-photo img{width:100%;height:auto;display:block}
+  @container (min-width:900px){ .story-a{grid-template-columns:1fr 1fr} }
+
+  /* cards */
+  .cards{display:grid;grid-template-columns:1fr;gap:16px;margin-top:20px}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 8px 22px rgba(90,40,20,.07)}
+  .card .ph{height:200px;background:var(--cream);position:relative}
+  .card .b{padding:14px 16px}
+  .card h3{margin:0 0 3px;font-size:17px;color:var(--wine-deep)}
+  .card p{margin:0;color:var(--muted);font-size:13px}
+  .card .price{display:inline-block;margin-top:9px;background:var(--cream);color:var(--wine);font-weight:800;font-size:13px;padding:3px 11px;border-radius:7px;border:1px solid var(--line)}
+
+  /* offer */
+  .offer{background:linear-gradient(135deg,var(--wine),var(--wine-deep));color:#fff;padding:28px 22px;display:grid;grid-template-columns:1fr;gap:18px;align-items:center;position:relative;overflow:hidden}
+  .offer .pat{position:absolute;inset:0;opacity:.12;color:#fff}
+  .offer .pat svg{width:100%;height:100%}
+  .offer>*{position:relative;z-index:2}
+  .offer .pat{z-index:1}
+  .offer .eyebrow{color:var(--gold-light);justify-content:flex-start}
+  .offer h2{color:#fff;text-align:left;margin:4px 0 8px;font-size:23px;font-family:Georgia,serif}
+  .offer p{color:#f3e3d4;font-size:14px;margin:0 0 14px}
+  .offer .ph{height:175px;border-radius:13px;overflow:hidden;background:rgba(255,255,255,.1)}
+
+  .events .ph{height:270px;border-radius:14px;overflow:hidden;margin-top:18px;background:var(--cream)}
+
+  .gallery{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:18px}
+  .gallery .g{aspect-ratio:1/1;border-radius:11px;overflow:hidden;background:var(--cream)}
+
+  .cgrid{display:grid;grid-template-columns:1fr;gap:18px;margin-top:18px}
+  .panel{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden}
+  .panel .pcorner{position:absolute;top:0;right:0;width:74px;height:74px;color:var(--kc);opacity:.85;transform:scaleX(-1)}
+  .panel h3{margin:0 0 10px;color:var(--wine);font-size:16px;position:relative}
+  .hours{width:100%;border-collapse:collapse;font-size:13px}
+  .hours td{padding:6px 4px;border-bottom:1px solid var(--line)}
+  .hours td:last-child{text-align:right;font-weight:600}
+  .map .ph{height:200px;border-radius:11px;overflow:hidden;background:#e2e4d6}
+  .addr{font-size:13.5px;margin:10px 0}
+
+  .foot{background:var(--wine-deep);color:#ecdcc9;text-align:center;padding:24px;font-size:12.5px;position:relative;overflow:hidden}
+  .foot .fwm{position:absolute;left:16px;bottom:6px;width:58px;height:58px;color:#fff;opacity:.10}
+  .foot .fwm.r{left:auto;right:16px}
+  .foot a{color:var(--gold-light);text-decoration:none}
+  .foot .fname{position:relative}
+
+  .mbar{position:sticky;bottom:0;z-index:12;display:flex;background:var(--wine);border-top:3px solid var(--gold)}
+  .mbar a{flex:1;text-align:center;color:#fff;text-decoration:none;padding:14px 4px;font-size:11px;font-weight:700}
+  .mbar a.hi{background:var(--gold);color:#3a2708}
+  .mbar a .ic{display:block;font-size:18px;margin-bottom:2px}
+  .mbar a+a{border-left:1px solid rgba(255,255,255,.18)}
+
+  @container (min-width:600px){
+    .nav .cta{display:inline-block;margin-left:0}.nav .links{display:flex}.nav .burger{display:none}.nav .logo{font-size:20px}.nav .brandtext{display:inline}
+    .hero{min-height:420px}.hero h1{font-size:42px}
+    .quick{grid-template-columns:repeat(4,1fr)}
+    .cards{grid-template-columns:repeat(3,1fr)}
+    .gallery{grid-template-columns:repeat(3,1fr)}
+    .mbar{display:none}
+  }
+  @container (min-width:980px){
+    .nav .brandmark{width:112px;height:112px;bottom:-56px}.nav .logo{padding-left:140px}
+    .page{font-size:16px}
+    .hero{min-height:520px}.hero h1{font-size:52px}.hero .sub{max-width:540px;font-size:15px}
+    .sec{padding:50px 58px}
+    .offer{grid-template-columns:1.05fr 1fr;gap:34px;padding:44px 58px}
+    .events .ph{height:460px}
+    .gallery{grid-template-columns:repeat(4,1fr)}
+    .cgrid{grid-template-columns:1fr 1fr}
+    .map .ph{height:250px}
+  }
+  @media(max-width:560px){.doc-head h1{font-size:20px}.laptop .screen{height:480px}}
+
+  /* logó-ötletek (a látványterven kívül) */
+  .ideas{max-width:1080px;margin:0 auto 64px;padding:0 20px}
+  .ideas-head{text-align:center;margin-bottom:20px}
+  .ideas-head .kicker{letter-spacing:3px;text-transform:uppercase;font-size:12px;color:var(--terra-deep);font-weight:800}
+  .ideas-head h2{color:var(--wine);font-size:22px;margin:6px 0 6px}
+  .ideas-head p{color:#5e4f44;font-size:13.5px;max-width:780px;margin:0 auto}
+  .ideas-grid{display:grid;grid-template-columns:1fr;gap:18px}
+  @media(min-width:680px){ .ideas-grid{grid-template-columns:repeat(2,1fr)} }
+  @media(min-width:1000px){ .ideas-grid{grid-template-columns:repeat(4,1fr)} }
+  .idea{margin:0;background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 8px 22px rgba(90,40,20,.06)}
+  .idea .thumb{height:150px;display:flex;align-items:center;justify-content:center;background:#efe7d8;position:relative}
+  .idea .thumb.light{background:repeating-conic-gradient(#f3ede1 0% 25%, #e8dfce 0% 50%) 0/22px 22px}
+  .idea .thumb img{max-width:86%;max-height:86%;object-fit:contain;display:block}
+  .idea .thumb::after{content:"ötlet";position:absolute;top:8px;right:8px;background:var(--terra-deep);color:#fff;font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;padding:3px 8px;border-radius:20px}
+  .idea figcaption{padding:13px 15px}
+  .idea h3{margin:0 0 5px;color:var(--wine-deep);font-size:15px;font-family:Georgia,serif}
+  .idea p{margin:0;color:var(--muted);font-size:12.5px;line-height:1.5}
+
+  /* === Étlap (hibrid) === */
+  .mtabs{position:sticky;top:66px;z-index:5;display:flex;gap:8px;overflow-x:auto;padding:14px 2px 12px;background:var(--cream);border-bottom:1px solid var(--line);margin-top:22px}
+  .mtabs button{flex:0 0 auto;border:1.5px solid var(--line);background:var(--paper);color:var(--ink);font-weight:700;font-size:13px;padding:8px 15px;border-radius:30px;cursor:pointer;font-family:inherit;white-space:nowrap}
+  .mtabs button.active{background:var(--wine);border-color:var(--wine);color:#fff}
+  .mpanel{display:none;max-width:680px;margin:18px auto 0;text-align:left}
+  .mpanel.active{display:block}
+  .msub{font-family:Georgia,serif;color:var(--terra-deep);font-size:13.5px;letter-spacing:1px;text-transform:uppercase;text-align:center;margin:18px 0 6px}
+  .mpanel .msub:first-child{margin-top:0}
+  .mrow{display:flex;align-items:baseline;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line)}
+  .mrow .txt{flex:0 1 auto}
+  .mrow .nm{font-weight:700;color:var(--ink)}
+  .mrow .ds{display:block;font-weight:400;color:var(--muted);font-size:12px;margin-top:2px}
+  .mrow .mid{flex:1 1 auto;min-width:14px;border-bottom:1px dotted #cbb89c;transform:translateY(-3px)}
+  .mrow .pr{font-family:Georgia,serif;font-weight:700;color:var(--wine);white-space:nowrap}
+  .menu-allergen{max-width:680px;margin:20px auto 0;color:var(--muted);font-size:12px;text-align:center;line-height:1.5}
+  .menu-cta{text-align:center;margin-top:18px}
+
+  /* napi ajánlat (offer jobb oldal) */
+  .offer .daily{background:var(--cream2);color:var(--ink);border-radius:14px;padding:20px 22px;border-top:4px solid var(--gold)}
+  .offer .daily .daily-head{display:flex;align-items:center;gap:9px;font-family:Georgia,serif;font-size:19px;color:var(--wine);font-weight:700}
+  .offer .daily .daily-head .dot{width:10px;height:10px;border-radius:50%;background:#2f6d4f;box-shadow:0 0 0 4px rgba(47,109,79,.18)}
+  .offer .daily .daily-sub{margin:4px 0 12px;color:var(--muted);font-size:13px}
+  .offer .daily .daily-list{list-style:none;margin:0;padding:0}
+  .offer .daily .daily-list li{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px dashed var(--line)}
+  .offer .daily .daily-list li b{font-family:Georgia,serif;color:var(--wine)}
+  .offer .daily .daily-note{margin:12px 0 0;color:var(--muted);font-size:12px}
+  /* galéria diavetítő */
+  .slider{position:relative;width:100%;margin-top:18px;border-radius:14px;overflow:hidden;background:#1c1a17;aspect-ratio:16/9;max-height:600px}
+  .slider .slide{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .8s ease}
+  .slider .slide.active{opacity:1}
+  .snav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:0;background:rgba(40,12,16,.5);color:#fff;font-size:26px;line-height:1;cursor:pointer;z-index:3}
+  .snav.prev{left:12px}.snav.next{right:12px}
+  .snav:hover{background:rgba(40,12,16,.85)}
+  .sdots{position:absolute;bottom:12px;left:0;right:0;display:flex;gap:7px;justify-content:center;z-index:3}
+  .sdots button{width:9px;height:9px;border-radius:50%;border:0;background:rgba(255,255,255,.55);cursor:pointer;padding:0}
+  .sdots button.active{background:var(--gold-light);transform:scale(1.25)}
+  /* kapcsolat — stílusos */
+  .cgrid2{display:grid;grid-template-columns:1fr;gap:20px;margin-top:18px}
+  .hours-card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:0 8px 22px rgba(90,40,20,.06)}
+  .hours-card .hc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .hours-card .hc-top h3{margin:0;color:var(--wine);font-size:17px}
+  .hc-status{font-size:12px;font-weight:800;padding:5px 12px;border-radius:20px;letter-spacing:.5px;background:var(--cream);color:var(--muted)}
+  .hc-status.open{background:#e6f2ea;color:#2f6d4f}
+  .hc-status.closed{background:#f5e7e2;color:#9a3f1f}
+  .hc-days{list-style:none;margin:0;padding:0}
+  .hc-days li{display:flex;justify-content:space-between;padding:9px 10px;border-radius:8px;font-size:14px}
+  .hc-days li b{font-weight:700;color:var(--ink)}
+  .hc-days li.today{background:var(--cream)}
+  .hc-days li.today span,.hc-days li.today b{color:var(--wine);font-weight:800}
+  .hc-contact{margin-top:14px;display:flex;flex-direction:column;gap:7px;font-size:13.5px;border-top:1px solid var(--line);padding-top:14px}
+  .hc-contact a,.hc-contact span{color:var(--ink);text-decoration:none}
+  .hc-contact a:hover{color:var(--wine)}
+  .map-card{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:0 8px 22px rgba(90,40,20,.06);min-height:300px;background:#dfe4d6}
+  .map-card img{width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0}
+  .map-card .map-ov{position:absolute;left:0;right:0;bottom:0;padding:16px 18px;background:linear-gradient(transparent,rgba(40,12,16,.72));display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+  .map-card .map-ov .madr{color:#fff;font-size:12.5px;text-shadow:0 1px 4px rgba(0,0,0,.5)}
+  @container (min-width:760px){ .cgrid2{grid-template-columns:1.05fr .95fr} }
+</style>
+</head>
+<body>
+
+<!-- ===== egyszínű kalocsai motívumok (currentColor) ===== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="rose-fill" viewBox="0 0 60 60">
+    <g fill="currentColor">
+      <g>
+        <ellipse cx="30" cy="12" rx="6" ry="11"/>
+        <ellipse cx="30" cy="12" rx="6" ry="11" transform="rotate(60 30 30)"/>
+        <ellipse cx="30" cy="12" rx="6" ry="11" transform="rotate(120 30 30)"/>
+        <ellipse cx="30" cy="12" rx="6" ry="11" transform="rotate(180 30 30)"/>
+        <ellipse cx="30" cy="12" rx="6" ry="11" transform="rotate(240 30 30)"/>
+        <ellipse cx="30" cy="12" rx="6" ry="11" transform="rotate(300 30 30)"/>
+      </g>
+      <g>
+        <ellipse cx="30" cy="18" rx="4" ry="7.5" transform="rotate(30 30 30)"/>
+        <ellipse cx="30" cy="18" rx="4" ry="7.5" transform="rotate(90 30 30)"/>
+        <ellipse cx="30" cy="18" rx="4" ry="7.5" transform="rotate(150 30 30)"/>
+        <ellipse cx="30" cy="18" rx="4" ry="7.5" transform="rotate(210 30 30)"/>
+        <ellipse cx="30" cy="18" rx="4" ry="7.5" transform="rotate(270 30 30)"/>
+        <ellipse cx="30" cy="18" rx="4" ry="7.5" transform="rotate(330 30 30)"/>
+      </g>
+      <circle cx="30" cy="30" r="6.5"/>
+    </g>
+  </symbol>
+  <symbol id="rose-line" viewBox="0 0 60 60">
+    <g fill="none" stroke="currentColor" stroke-width="1.6">
+      <ellipse cx="30" cy="12" rx="6" ry="11"/>
+      <ellipse cx="30" cy="12" rx="6" ry="11" transform="rotate(60 30 30)"/>
+      <ellipse cx="30" cy="12" rx="6" ry="11" transform="rotate(120 30 30)"/>
+      <ellipse cx="30" cy="12" rx="6" ry="11" transform="rotate(180 30 30)"/>
+      <ellipse cx="30" cy="12" rx="6" ry="11" transform="rotate(240 30 30)"/>
+      <ellipse cx="30" cy="12" rx="6" ry="11" transform="rotate(300 30 30)"/>
+      <circle cx="30" cy="30" r="8"/>
+    </g>
+    <circle cx="30" cy="30" r="2.4" fill="currentColor"/>
+  </symbol>
+  <symbol id="tulip" viewBox="0 0 40 52">
+    <path fill="currentColor" d="M20 50 C 7 41 4 22 11 11 C 14 17 17 19 20 19 C 23 19 26 17 29 11 C 36 22 33 41 20 50 Z"/>
+    <path fill="none" stroke="#fff" stroke-width="1.4" d="M20 20 V 44 M14 16 C 16 24 17 34 20 40 M26 16 C 24 24 23 34 20 40"/>
+  </symbol>
+  <symbol id="leaf" viewBox="0 0 30 16">
+    <path fill="currentColor" d="M1 8 C 9 -1 21 -1 29 8 C 21 17 9 17 1 8 Z"/>
+    <path fill="none" stroke="#fff" stroke-width="1.2" d="M6 8 H 24"/>
+  </symbol>
+  <symbol id="bud" viewBox="0 0 24 34">
+    <path fill="none" stroke="currentColor" stroke-width="1.7" d="M12 34 V 16"/>
+    <path fill="currentColor" d="M12 16 C 4 13 4 4 8 1 C 9 4 11 5 12 5 C 13 5 15 4 16 1 C 20 4 20 13 12 16 Z"/>
+    <path fill="currentColor" d="M12 22 C 8 20 5 21 4 24 C 8 25 11 25 12 22 Z"/>
+    <path fill="currentColor" d="M12 22 C 16 20 19 21 20 24 C 16 25 13 25 12 22 Z"/>
+  </symbol>
+  <symbol id="flower5" viewBox="0 0 32 32">
+    <g fill="currentColor">
+      <ellipse cx="16" cy="6" rx="4.4" ry="6"/>
+      <ellipse cx="16" cy="6" rx="4.4" ry="6" transform="rotate(72 16 16)"/>
+      <ellipse cx="16" cy="6" rx="4.4" ry="6" transform="rotate(144 16 16)"/>
+      <ellipse cx="16" cy="6" rx="4.4" ry="6" transform="rotate(216 16 16)"/>
+      <ellipse cx="16" cy="6" rx="4.4" ry="6" transform="rotate(288 16 16)"/>
+    </g>
+    <circle cx="16" cy="16" r="4" fill="#fff"/>
+    <circle cx="16" cy="16" r="2.2" fill="currentColor"/>
+  </symbol>
+</defs></svg>
+
+<div class="screen full" data-page></div>
+
+<div class="doc-head">
+  <div class="kicker">Látványterv v7 · lelógó logó</div>
+  <h1>Kalocsáék Vendéglője 1957 — Újratervezett főoldal</h1>
+  <p>Valódi ételfotók · diavetítős galéria · stílusos kapcsolat-blokk</p>
+</div>
+
+<p class="note">A <strong>v7</strong> a v6-ra épül, csak a <strong>fejléc logó</strong> változott: átlátszó, kb. <strong>kétszeres</strong> méretű, a változatlan magasságú sávból <strong>lelóg</strong> (fele a sávban, fele a tartalom fölött), a jóváhagyott fehér ragyogás-profillal (a sugár 80%-áig teljes, az utolsó 20%-ban 0-ra fogy). Minden más (teljes étlap, galéria-diavetítő, kapcsolat) változatlan. A gombok még nem működnek.</p>
+
+<div class="stage">
+  <div class="device-block">
+    <div class="device-label">🖥️ Asztali nézet <span class="en">/ Desktop</span></div>
+    <div class="laptop">
+      <div class="bezel">
+        <div class="bar"><i class="r"></i><i class="y"></i><i class="g"></i><span>kalocsaekvendegloje.hu</span></div>
+        <div class="screen" data-page></div>
+      </div>
+      <div class="stand"></div><div class="foot"></div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="device-block" style="margin-bottom:0">
+      <div class="device-label">📱 Tablet <span class="en">/ Tablet</span></div>
+      <div class="tablet"><div class="bd"><div class="screen" data-page></div></div></div>
+    </div>
+    <div class="device-block" style="margin-bottom:0">
+      <div class="device-label">📲 Mobil <span class="en">/ Mobile</span></div>
+      <div class="phone"><div class="bd"><div class="notch"></div><div class="screen" data-page></div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== logó-változatok — ötletek (NEM része a fenti látványtervnek) ===== -->
+<div class="ideas">
+  <div class="ideas-head">
+    <div class="kicker">Logó-változatok · ötletek</div>
+    <h2>További logóképek — felhasználási ötletek</h2>
+    <p>Ezek a változatok <strong>még nincsenek beépítve a fenti látványtervbe</strong> — csak javaslatok arra, hol és hogyan lennének felhasználhatók. A döntésed után építjük be a megfelelőt.</p>
+  </div>
+  <div class="ideas-grid">
+    <figure class="idea">
+      <div class="thumb light"><img src="logos.png" alt="Egyszínű, átlátszó hátterű logó"></div>
+      <figcaption><h3>Egyszínű, átlátszó logó</h3><p>Sötétbarna embléma átlátszó háttérrel. <b>Ez az ideális fő logó-fájl</b> a fejléchez, lábléchez és vízjelhez — fehér doboz nélkül, tisztán illeszkedik bármilyen háttérre. Javasolt a jelenlegi „multiply" megoldás helyett.</p></figcaption>
+    </figure>
+    <figure class="idea">
+      <div class="thumb light"><img src="logo4.png" alt="Színes, átlátszó hátterű logó"></div>
+      <figcaption><h3>Színes logó (átlátszó)</h3><p>A teljes színes embléma (piros rózsák, zöld levél, paprika). Hivatalos megjelenéshez: favikon, közösségi profil, nyomtatás. Dekoratív mintaként kerüljük (többszínű), de fő emblémaként világos háttéren jól mutat.</p></figcaption>
+    </figure>
+    <figure class="idea">
+      <div class="thumb"><img src="logo3.png" alt="Fába égetett logó"></div>
+      <figcaption><h3>Fába égetett logó</h3><p>Meleg, rusztikus, prémium hatás. Második <b>hero-háttérként</b> a rotációba illeszthető, vagy a „Történetünk" / rendezvény-szakasz háttértextúrájaként. Erősíti a családi, hagyományos karaktert.</p></figcaption>
+    </figure>
+    <figure class="idea">
+      <div class="thumb"><img src="logo2.png" alt="Vintage, papírra nyomott logó"></div>
+      <figcaption><h3>Vintage „pecsét" logó</h3><p>Kopott tintás, papírra nyomott hatás. Finom <b>háttér-vízjelnek</b> vagy a történet-szakasz textúrájának ideális világos blokkokon. Nosztalgikus, kézműves érzetet ad.</p></figcaption>
+    </figure>
+  </div>
+</div>
+
+<!-- ===== reusable page ===== -->
+<template id="tpl">
+  <div class="page">
+
+    <div class="nav">
+      <div class="logo"><span class="brandmark" role="img" aria-label="Kalocsáék Vendéglője 1957 logó"></span><span class="brandtext">Kalocsáék Vendéglője <span class="yr">1957</span></span></div>
+      <div class="links">
+        <a href="#">Étlap</a><a href="#">Rendezvények</a><a href="#">Galéria</a><a href="#">Házhozszállítás</a><a href="#">Kapcsolat</a>
+      </div>
+      <a class="cta" href="#">Asztalfoglalás</a>
+      <span class="burger">☰</span>
+    </div>
+
+    <div class="hero">
+      <div class="herobg garden"></div>
+      <div class="herobg table"></div>
+      <div class="scrim"></div>
+      <div class="inner">
+        <span class="badge">Anno 1957 · Cegléd</span>
+        <h1>Kalocsáék Vendéglője</h1>
+        <p class="slogan">„Szépet, jót, finomat!"</p>
+        <p class="sub">Házias magyar konyha hangulatos kertben — pergola, kemence és igazi családi vendéglátás 1957 óta.</p>
+        <div class="btns">
+          <a class="btn btn-primary" href="#">Asztalfoglalás</a>
+          <a class="btn btn-cream" href="#">Napi menü</a>
+          <a class="btn btn-ghost" href="#">Étlap megtekintése</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="quick">
+      <a href="#"><span class="ic">📞</span>Hívás<small>+36 70 772 0291</small></a>
+      <a href="#"><span class="ic">📍</span>Útvonal<small>Kőrösi út 36, Cegléd</small></a>
+      <a href="#"><span class="ic">🍽️</span>Étlap<small>2026 étlap</small></a>
+      <a href="#"><span class="ic">🕒</span>Nyitvatartás<small>Ma 11–21</small></a>
+    </div>
+
+    <div class="sec story-a">
+      <div class="va-text">
+        <div class="eyebrow">Történetünk</div>
+        <h2>Három generáció, egy konyha</h2>
+        <p class="lead">1957 óta főzünk magyaros, házias ízekkel. A vendéglőt Kalocsa János és felesége nyitotta a Kőrösi úton; az ízeket és a vendégszeretetet azóta a család harmadik generációja viszi tovább — bővülő kerttel, kemencével és 100 éves szőlő-pergolával.</p>
+        <p class="founders">Alapítók: <b>Kalocsa János</b> és <b>Király Erzsébet</b> · 67+ éve a vendégeink szolgálatában</p>
+        <div class="miniline">
+          <div><b>1957</b><small>Alapítás</small></div>
+          <div><b>1992</b><small>Új generáció</small></div>
+          <div><b>2006</b><small>Bővítés</small></div>
+          <div><b>2016</b><small>Kert &amp; pergola</small></div>
+        </div>
+      </div>
+      <div class="va-photo">
+        <img src="vendeglo_1970_3_atlatszo.png" alt="A vendéglő anno — a Kőrösi úti épület">
+      </div>
+    </div>
+
+    <div class="sec alt menu-sec">
+      <div class="eyebrow">Étlap</div>
+      <h2>2026 étlapunk</h2>
+      <p class="lead">Házias magyar konyha, bőséges adagok — helyben és házhoz szállítva is. A fő húsételekhez köret szabadon választható. Válasszon kategóriát:</p>
+      <div class="cards"><div class="card"><div class="ph"><img src="kalocsa_table_2.png" alt="Marha pörkölt galuskával" style="object-position:34% 70%"></div><div class="b"><h3>Marha pörkölt galuskával</h3><p>Lassú tűzön főtt marhanyak, kalocsai paprikával, házi galuskával.</p><span class="price">3 950 Ft</span></div></div><div class="card"><div class="ph"><img src="https://cdn.website.dish.co/media/dd/47/3211671/Kalocsaek-Vendegloje-130835177-3640366182668773-1406645070084188086-o.jpg" alt="Sültes tálak"></div><div class="b"><h3>Sültes tálak</h3><p>Bőséges tálak 2–4 főre — a Kalocsa táltól a Retró tálig.</p><span class="price">9 350 Ft-tól</span></div></div><div class="card"><div class="ph"><img src="https://cdn.website.dish.co/media/75/be/3211591/Kalocsaek-Vendegloje-527714-530192393686183-1332935311-n.jpg" alt="Minden nap rendelhető - kemencés sültek"></div><div class="b"><h3>Minden nap — házhoz is</h3><p>Sültestálak és napi fogások, ingyenes kiszállítással.</p><span class="price">Rendelés telefonon</span></div></div></div>
+      <div class="mtabs"><button class="active" data-mtab="levesek">Levesek</button><button class="" data-mtab="sultes">Sültes tálak</button><button class="" data-mtab="gyerek">Gyerek</button><button class="" data-mtab="szarnyas">Szárnyasok</button><button class="" data-mtab="kacsa">Kacsa</button><button class="" data-mtab="sertes">Sertés</button><button class="" data-mtab="marha">Marhasültek</button><button class="" data-mtab="porkolt">Pörköltek</button><button class="" data-mtab="halak">Halak</button><button class="" data-mtab="teszta">Tészták</button><button class="" data-mtab="rantott">Rántottak</button><button class="" data-mtab="burger">Hamburgerek</button><button class="" data-mtab="koret">Köretek</button><button class="" data-mtab="salata">Saláták</button><button class="" data-mtab="szosz">Szószok</button><button class="" data-mtab="desszert">Desszertek</button><button class="" data-mtab="italok">Italok</button></div>
+      <div class="mpanels"><div class="mpanel active" data-mpanel="levesek"><div class="mrow"><span class="txt"><span class="nm">Májgombóc leves</span><span class="ds">Házi kézműves májgombóc, leveszöldségekkel.</span></span><span class="mid"></span><span class="pr">1 550 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Erdei gyümölcsleves</span><span class="ds">Erdei gyümölcsök egyvelege, selymes tejszínes alapon.</span></span><span class="mid"></span><span class="pr">1 650 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Tárkonyos raguleves</span><span class="ds">Friss tárkonnyal, pirított csirkemell-kockákkal.</span></span><span class="mid"></span><span class="pr">1 750 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Újházi tyúkhúsleves csigatésztával</span><span class="ds">Lakodalmas tyúkhúsleves zöldségekkel, borsóval, csigatésztával.</span></span><span class="mid"></span><span class="pr">1 850 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Babgulyás füstölt csülökkel</span><span class="ds">Fejtett babbal, füstölt csülökkel, kalocsai paprikával, galuskával.</span></span><span class="mid"></span><span class="pr">1 950 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Marhagulyás</span><span class="ds">Lassú tűzön főtt marhanyak, kalocsai paprikával, burgonyával.</span></span><span class="mid"></span><span class="pr">2 350 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Harcsa halászlé bográcsban</span><span class="ds">Vegyes hal alaplé, afrikai harcsafilével tálalva.</span></span><span class="mid"></span><span class="pr">3 350 Ft</span></div></div><div class="mpanel" data-mpanel="sultes"><div class="msub">2 személyes</div><div class="mrow"><span class="txt"><span class="nm">Szerelmes tál</span><span class="ds">Háromféle töltött/rántott csirkemell, steak burgonya, párolt rizs.</span></span><span class="mid"></span><span class="pr">9 350 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Csülök tál</span><span class="ds">Egészben sült abált füstölt csülök, párolt lilakáposzta, sült mézes alma, steak burgonya.</span></span><span class="mid"></span><span class="pr">9 350 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Kacsa tál</span><span class="ds">Pácolt rozé kacsamell, konfitált kacsacomb, lilakáposzta, mézes alma, steak burgonya.</span></span><span class="mid"></span><span class="pr">9 950 Ft</span></div><div class="msub">4 személyes</div><div class="mrow"><span class="txt"><span class="nm">1957 Retró tál</span><span class="ds">Rántott gomba, sajt, szezámos szelet, cordon bleu, csirke steak, burgonya, rizs.</span></span><span class="mid"></span><span class="pr">18 250 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Családi tál</span><span class="ds">Rántott csirkemell, sajt, mátrai borzas, cigánypecsenye, kanász király lakomája, burgonya, rizs.</span></span><span class="mid"></span><span class="pr">19 900 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Kalocsa tál</span><span class="ds">Séf gomba, hagymakarika, cordon bleu, pelyhes pipi, tomahawk, füstölt csülök, kacsacomb, burgonya, mártogatósok.</span></span><span class="mid"></span><span class="pr">22 900 Ft</span></div></div><div class="mpanel" data-mpanel="gyerek"><div class="mrow"><span class="txt"><span class="nm">Pelyhes pipi Jr.</span><span class="ds">Gabonapelyhes csirkemell, választható mártogatóssal és körettel.</span></span><span class="mid"></span><span class="pr">2 650 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Három kismalac</span><span class="ds">Sonkás-sajtos panírozott falatok, körettel.</span></span><span class="mid"></span><span class="pr">2 650 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Egér lakoma</span><span class="ds">Bundás (rántott) sajt, körettel.</span></span><span class="mid"></span><span class="pr">2 650 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Csiszi csusza</span><span class="ds">Túrós csusza, tepertővel vagy anélkül.</span></span><span class="mid"></span><span class="pr">2 350 Ft</span></div></div><div class="mpanel" data-mpanel="szarnyas"><div class="mrow"><span class="txt"><span class="nm">Vasalt szaftos csirkemell steak</span><span class="ds">Vajon sütött, házi fűszerekbe forgatva.</span></span><span class="mid"></span><span class="pr">3 400 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Pelyhes pipi</span><span class="ds">Kukoricapelyhes csirkemell, fokhagymás mártogatóssal.</span></span><span class="mid"></span><span class="pr">3 550 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Baconba tekert szilvás csirkemell</span><span class="ds">Baconba tekert, szilvával töltött csirkemell.</span></span><span class="mid"></span><span class="pr">3 750 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Áfonyás camemberttel töltött csirkemell</span><span class="ds">Kirántva, áfonyás camembert töltelékkel.</span></span><span class="mid"></span><span class="pr">3 750 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Vermutos csirkemell steak</span><span class="ds">Titkos vermutos-tárkonyos mártással.</span></span><span class="mid"></span><span class="pr">3 750 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Vasalt gyros csirkemell steak</span><span class="ds">Kapros steak, friss salátával, fokhagymás kapormártással.</span></span><span class="mid"></span><span class="pr">3 750 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Szilvapálinkás mázas csirkemell steak</span><span class="ds">Saját szilvapálinkás BBQ-ba forgatva.</span></span><span class="mid"></span><span class="pr">3 950 Ft</span></div></div><div class="mpanel" data-mpanel="kacsa"><div class="mrow"><span class="txt"><span class="nm">Konfitált kacsacomb párolt káposztával</span><span class="ds">Fokhagymás-rozmaringos kacsacomb.</span></span><span class="mid"></span><span class="pr">4 450 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Kacsa tányéros</span><span class="ds">Konfitált comb + pácolt kacsamell steak, párolt lilakáposztával.</span></span><span class="mid"></span><span class="pr">4 700 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Rozmaringos rozé kacsamell</span><span class="ds">Pácolt kacsamell steak, fokhagymás rozmaringgal.</span></span><span class="mid"></span><span class="pr">5 250 Ft</span></div></div><div class="mpanel" data-mpanel="sertes"><div class="mrow"><span class="txt"><span class="nm">Brassói szűzpecsenye</span><span class="ds">Tradicionális fokhagymás brassói, kockaburgonyával.</span></span><span class="mid"></span><span class="pr">4 750 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Mátrai borzas</span><span class="ds">Burgonya-tésztabundában sült karaj, fűszeres tejföllel, sajttal.</span></span><span class="mid"></span><span class="pr">3 750 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Cigánypecsenye kakastaréjjal</span><span class="ds">Paprikás-fokhagymás tarja, szalonna kakastaréjjal.</span></span><span class="mid"></span><span class="pr">3 850 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Csülök tányéros</span><span class="ds">Abált füstölt csülök, párolt lilakáposzta, tormás mártogatós.</span></span><span class="mid"></span><span class="pr">3 900 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Tomahawk karaj</span><span class="ds">Fűszeres pácban érlelt csontos sertéskaraj.</span></span><span class="mid"></span><span class="pr">4 150 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Lecsó parádé</span><span class="ds">Szaftos tarja, lecsós-kolbászos feltéttel, tükörtojással.</span></span><span class="mid"></span><span class="pr">4 000 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Szende szűz</span><span class="ds">Sertésszűz érmék lestyánba forgatva, baconba tekerve.</span></span><span class="mid"></span><span class="pr">4 250 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Zsenge szűz</span><span class="ds">Borskéregben, egészben sült szűzpecsenye, vékonyra szelve.</span></span><span class="mid"></span><span class="pr">4 350 Ft</span></div></div><div class="mpanel" data-mpanel="marha"><div class="msub">25 dkg · Rostélyos / Argentin / Bélszín steak</div><div class="mrow"><span class="txt"><span class="nm">New York steak</span><span class="ds">Fokhagymás négyborssal.</span></span><span class="mid"></span><span class="pr">5 700 / 7 700 / 8 700 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Hagymás rostélyos</span><span class="ds">Mustárosan, sült hagymakarikákkal.</span></span><span class="mid"></span><span class="pr">5 900 / 7 900 / 8 900 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Szerencsés marha</span><span class="ds">Whiskys BBQ szósszal.</span></span><span class="mid"></span><span class="pr">6 700 / 8 700 / 9 700 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Részeg marha</span><span class="ds">Szilvapálinka-mázas BBQ-ba forgatva.</span></span><span class="mid"></span><span class="pr">6 700 / 8 700 / 9 700 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Vad marha</span><span class="ds">Vadas mártással, grillzöldséggel, házi szalvétagombóccal.</span></span><span class="mid"></span><span class="pr">7 500 / 9 500 / 10 500 Ft</span></div></div><div class="mpanel" data-mpanel="porkolt"><div class="mrow"><span class="txt"><span class="nm">Csülök pörkölt</span><span class="ds">Igazi cupákos sertéscsülök-pörkölt.</span></span><span class="mid"></span><span class="pr">3 350 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Pacal pörkölt</span><span class="ds">Ahogy nagymama készítette.</span></span><span class="mid"></span><span class="pr">3 550 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Marha pörkölt</span><span class="ds">Lassú tűzön főtt marhanyak, kalocsai paprikával.</span></span><span class="mid"></span><span class="pr">3 950 Ft</span></div></div><div class="mpanel" data-mpanel="halak"><div class="mrow"><span class="txt"><span class="nm">Harcsapaprikás túróscsuszával</span><span class="ds">Afrikai harcsafiléből főzött paprikás.</span></span><span class="mid"></span><span class="pr">5 850 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Panka harcsa</span><span class="ds">Pankó morzsában sült afrikai harcsafilé.</span></span><span class="mid"></span><span class="pr">3 950 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Vaslapon sült kapros-citromos harcsa</span><span class="ds">Friss kaporral, citrommal hirtelen sütve.</span></span><span class="mid"></span><span class="pr">3 850 Ft</span></div></div><div class="mpanel" data-mpanel="teszta"><div class="mrow"><span class="txt"><span class="nm">Túrós csusza</span><span class="ds">Tradicionális, szalonnatepertővel.</span></span><span class="mid"></span><span class="pr">3 350 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Juhtúrós sztrapacska</span><span class="ds">Juhtúróval, tepertővel, lilahagymával.</span></span><span class="mid"></span><span class="pr">3 450 Ft</span></div></div><div class="mpanel" data-mpanel="rantott"><div class="mrow"><span class="txt"><span class="nm">Rántott hagymakarika</span><span class="ds">Tésztabundában sült hagymakarikák.</span></span><span class="mid"></span><span class="pr">3 050 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Rántott gomba</span><span class="ds">Morzsában sült csiperkegomba.</span></span><span class="mid"></span><span class="pr">3 050 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Rántott sajt</span><span class="ds">Morzsában sült trapista sajt.</span></span><span class="mid"></span><span class="pr">3 350 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Rántott sertésszelet</span><span class="ds">Morzsában sült sertéskaraj-szeletek.</span></span><span class="mid"></span><span class="pr">3 350 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Rántott csirkemell</span><span class="ds">Morzsában sült csirkemell-szeletek.</span></span><span class="mid"></span><span class="pr">3 350 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Cordon Bleu</span><span class="ds">Rántott karaj, sajttal-sonkával töltve.</span></span><span class="mid"></span><span class="pr">3 650 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Kanász király lakomája</span><span class="ds">Töltött karaj: füstölt csülök, csemegeuborka, torma, tojás, sajt.</span></span><span class="mid"></span><span class="pr">3 850 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Óriás bécsi szelet</span><span class="ds">Pankó morzsában sült, 30 dkg rántott sertéskaraj.</span></span><span class="mid"></span><span class="pr">4 650 Ft</span></div></div><div class="mpanel" data-mpanel="burger"><div class="mrow"><span class="txt"><span class="nm">1957 Retró burger</span><span class="ds">15 dkg marhahús, hamburgerszósz, saláta, uborka, hagyma, paradicsom.</span></span><span class="mid"></span><span class="pr">2 450 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Sajt burger</span><span class="ds">15 dkg marhahús, sajtszósz, dupla sajt, saláta, uborka, paradicsom.</span></span><span class="mid"></span><span class="pr">2 650 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Pipi burger</span><span class="ds">15 dkg pelyhes pipi csirkemell, fokhagymás majonéz, saláta, paradicsom.</span></span><span class="mid"></span><span class="pr">2 450 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Farmer burger</span><span class="ds">15 dkg sertéshús, ranch szósz, bacon, sajt, saláta, hagyma, paradicsom.</span></span><span class="mid"></span><span class="pr">2 650 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Black Jack burger</span><span class="ds">15 dkg marhahús, Whiskys BBQ, bacon, sajt, saláta, hagyma, pirított hagyma.</span></span><span class="mid"></span><span class="pr">2 850 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">BAD Boy burger</span><span class="ds">15 dkg marhahús, chilis majonéz, bacon, sajt, saláta, pirított hagyma, jalapeño.</span></span><span class="mid"></span><span class="pr">2 950 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">BIG Boy burger</span><span class="ds">2×15 dkg marhahús, Big Boy szósz, tripla sajt, saláta, hagyma, uborka, paradicsom.</span></span><span class="mid"></span><span class="pr">3 850 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Hasábburgonya</span><span class="ds">Kis adag, kizárólag hamburger mellé.</span></span><span class="mid"></span><span class="pr">500 Ft</span></div></div><div class="mpanel" data-mpanel="koret"><div class="mrow"><span class="txt"><span class="nm">Párolt rizs</span></span><span class="mid"></span><span class="pr">850 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Rizibizi</span></span><span class="mid"></span><span class="pr">950 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Hasábburgonya</span></span><span class="mid"></span><span class="pr">950 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Steak burgonya</span></span><span class="mid"></span><span class="pr">950 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Édesburgonya</span></span><span class="mid"></span><span class="pr">1 450 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Burgonyapüré</span></span><span class="mid"></span><span class="pr">950 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Főtt burgonya</span></span><span class="mid"></span><span class="pr">850 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Petrezselymes burgonya</span></span><span class="mid"></span><span class="pr">950 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Galuska</span></span><span class="mid"></span><span class="pr">950 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Betyár burgonya</span><span class="ds">Gerezdek, kápia, sült hagyma, fokhagyma, füstölt szalonna.</span></span><span class="mid"></span><span class="pr">1 350 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">New York burgonya</span><span class="ds">Hájában sült, fokhagymás tejföllel, sajttal.</span></span><span class="mid"></span><span class="pr">1 350 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Párolt zöldség</span></span><span class="mid"></span><span class="pr">1 550 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Grill zöldség</span></span><span class="mid"></span><span class="pr">1 550 Ft</span></div></div><div class="mpanel" data-mpanel="salata"><div class="mrow"><span class="txt"><span class="nm">Csemege uborka</span></span><span class="mid"></span><span class="pr">850 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Kovászos uborka</span></span><span class="mid"></span><span class="pr">850 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Káposztasaláta</span></span><span class="mid"></span><span class="pr">850 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Vegyes vágott</span></span><span class="mid"></span><span class="pr">850 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Csípős almapaprika</span></span><span class="mid"></span><span class="pr">850 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Uborkasaláta</span></span><span class="mid"></span><span class="pr">850 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Tejfölös uborkasaláta</span></span><span class="mid"></span><span class="pr">950 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Párolt lilakáposzta</span></span><span class="mid"></span><span class="pr">950 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Paradicsomsaláta</span></span><span class="mid"></span><span class="pr">1 250 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Coleslaw saláta</span></span><span class="mid"></span><span class="pr">1 350 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Kevert magos saláta</span></span><span class="mid"></span><span class="pr">1 650 Ft</span></div></div><div class="mpanel" data-mpanel="szosz"><div class="mrow"><span class="txt"><span class="nm">Ketchup</span></span><span class="mid"></span><span class="pr">500 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Mustár</span></span><span class="mid"></span><span class="pr">500 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Majonéz</span></span><span class="mid"></span><span class="pr">500 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Tartármártás</span></span><span class="mid"></span><span class="pr">750 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Fokhagymás mártogatós</span></span><span class="mid"></span><span class="pr">750 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Tormás mártogatós</span></span><span class="mid"></span><span class="pr">750 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Csíki mártás</span></span><span class="mid"></span><span class="pr">950 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Whiskys BBQ</span></span><span class="mid"></span><span class="pr">1 050 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Szilvapálinka-mázas BBQ</span></span><span class="mid"></span><span class="pr">1 050 Ft</span></div></div><div class="mpanel" data-mpanel="desszert"><div class="mrow"><span class="txt"><span class="nm">Palacsinta több ízben</span><span class="ds">Kakaós, nutellás, túrós, baracklekváros vagy fahéjas.</span></span><span class="mid"></span><span class="pr">600 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Gesztenyepüré</span><span class="ds">Klasszikus, tejszínhabbal.</span></span><span class="mid"></span><span class="pr">1 450 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Mákos nudli</span><span class="ds">Mákos nudli vanília alapon.</span></span><span class="mid"></span><span class="pr">1 650 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Lávafolyam</span><span class="ds">Francia csokoládés szuflé.</span></span><span class="mid"></span><span class="pr">1 750 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Erdei gyümölcsös sajttorta (vegán)</span><span class="ds">Mascarpone krémes, erdei gyümölcsös réteggel.</span></span><span class="mid"></span><span class="pr">1 750 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Őrség kincse tortaszelet</span><span class="ds">Magyarország tortája 2016 receptje alapján.</span></span><span class="mid"></span><span class="pr">1 850 Ft</span></div></div><div class="mpanel" data-mpanel="italok"><div class="msub">Üdítők, vizek</div><div class="mrow"><span class="txt"><span class="nm">Szóda (1 dl)</span></span><span class="mid"></span><span class="pr">150 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">NaturAqua mentes / szénsavas (0,33 l)</span></span><span class="mid"></span><span class="pr">550 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Coca-Cola, Cola Zéró, Fanta, Sprite (0,25 l)</span></span><span class="mid"></span><span class="pr">650 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Kinley Ginger Ale / Beer / Tonic / Pink / Purple (0,25 l)</span></span><span class="mid"></span><span class="pr">650 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Fuze Tea citrom / barack (0,25 l)</span></span><span class="mid"></span><span class="pr">650 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Cappy gyümölcslevek (0,25 l)</span><span class="ds">Őszibarack, narancs, alma, körte, eper, ananász.</span></span><span class="mid"></span><span class="pr">700 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Hell energiaital (0,25 l)</span></span><span class="mid"></span><span class="pr">600 Ft</span></div><div class="msub">Limonádé, házi szörp</div><div class="mrow"><span class="txt"><span class="nm">Limonádé — citrus / erdei (3 dl / 5 dl / 1 l)</span></span><span class="mid"></span><span class="pr">600 / 1 000 / 2 000 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Házi szörp — bodza / levendula (3 dl / 5 dl / 1 l)</span></span><span class="mid"></span><span class="pr">600 / 1 000 / 2 000 Ft</span></div><div class="msub">Kávé, forró italok</div><div class="mrow"><span class="txt"><span class="nm">Eszpresszó</span></span><span class="mid"></span><span class="pr">600 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Eszpresszó Special</span><span class="ds">Pisztáciás, nutellás vagy sütőtökös.</span></span><span class="mid"></span><span class="pr">800 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Doppio</span></span><span class="mid"></span><span class="pr">1 150 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Cappuccino</span></span><span class="mid"></span><span class="pr">900 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Caffé Latte</span></span><span class="mid"></span><span class="pr">900 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Latte Special</span><span class="ds">Pisztáciás, nutellás vagy sütőtökös.</span></span><span class="mid"></span><span class="pr">1 200 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Melange</span></span><span class="mid"></span><span class="pr">1 100 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Forró csoki</span></span><span class="mid"></span><span class="pr">750 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Ice Caffé</span></span><span class="mid"></span><span class="pr">1 550 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Dilmah teák (5 dl)</span><span class="ds">Zöld, fekete, narancs-gyömbér, barack, alma-fahéj-vanília, erdei gyümölcs, menta.</span></span><span class="mid"></span><span class="pr">600 Ft</span></div><div class="msub">Sörök</div><div class="mrow"><span class="txt"><span class="nm">Csapolt Gösser (3 dl / 5 dl)</span></span><span class="mid"></span><span class="pr">750 / 1 250 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Csapolt Soproni meggysör (3 dl / 5 dl)</span></span><span class="mid"></span><span class="pr">750 / 1 250 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Soproni Démon / Pilsner Urquell / Krusovice / Heineken (0,5 l)</span></span><span class="mid"></span><span class="pr">1 300 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Sommersby alma (0,33 l)</span></span><span class="mid"></span><span class="pr">1 100 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Heineken 0% / Gösser citrom 0% (0,33 l)</span></span><span class="mid"></span><span class="pr">800 Ft</span></div><div class="msub">Borok, pezsgő</div><div class="mrow"><span class="txt"><span class="nm">Frittmann borok (0,75 l / 1 dl)</span><span class="ds">Cserszegi, Irsai Olivér, Rosé, Cabernet, Portugieser, Kékfrankos.</span></span><span class="mid"></span><span class="pr">4 800 / 650 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Varga borok (0,75 l / 1 dl)</span><span class="ds">Olaszrizling, Irsai, Szürkebarát, Muskotály, Rosé, Kékfrankos, Merlot, Bikavér, Zweigelt.</span></span><span class="mid"></span><span class="pr">4 800 / 650 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Törley pezsgő (0,75 l)</span><span class="ds">Édes, félszáraz, száraz, alkoholmentes.</span></span><span class="mid"></span><span class="pr">4 200 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Kölyök pezsgő (0,75 l)</span><span class="ds">Alkoholmentes.</span></span><span class="mid"></span><span class="pr">2 500 Ft</span></div><div class="msub">Pálinkák (2–5 cl)</div><div class="mrow"><span class="txt"><span class="nm">Mihócsa pálinka 45%</span><span class="ds">Szilva, birsalma, kiffer körte.</span></span><span class="mid"></span><span class="pr">900 / 1 600 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Márkházi pálinka</span><span class="ds">Barack, szilva, meggy.</span></span><span class="mid"></span><span class="pr">950 / 1 600 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Rézangyal pálinka</span><span class="ds">Kajszibarack.</span></span><span class="mid"></span><span class="pr">950 / 1 600 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Bolyhos pálinka</span><span class="ds">Vegyes gyümölcs, cigánymeggy.</span></span><span class="mid"></span><span class="pr">850 / 1 400 Ft</span></div><div class="msub">Röviditalok, likőrök (2–4 cl)</div><div class="mrow"><span class="txt"><span class="nm">Unikum (classic / barista / szilva)</span></span><span class="mid"></span><span class="pr">650 / 1 100 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Jägermeister</span></span><span class="mid"></span><span class="pr">650 / 1 100 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Hubertus</span></span><span class="mid"></span><span class="pr">600 / 950 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Johnnie Walker / Jim Beam</span></span><span class="mid"></span><span class="pr">800 / 1 300 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Jack Daniel's / Jameson / Tullamore Dew</span></span><span class="mid"></span><span class="pr">850 / 1 400 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Bacardi / Captain Morgan rum</span></span><span class="mid"></span><span class="pr">700 / 1 200 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Bumbu rum</span></span><span class="mid"></span><span class="pr">1 400 / 2 300 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Metaxa 5*</span></span><span class="mid"></span><span class="pr">650 / 1 100 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Martell V.S.</span></span><span class="mid"></span><span class="pr">1 300 / 2 200 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Hennessy</span></span><span class="mid"></span><span class="pr">1 400 / 2 300 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Olmeca / El Jimador tequila</span></span><span class="mid"></span><span class="pr">900 / 1 450 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Kalinka vodka</span></span><span class="mid"></span><span class="pr">600 / 1 000 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Finlandia / Botanica vodka</span></span><span class="mid"></span><span class="pr">700 / 1 200 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Russian Standard</span></span><span class="mid"></span><span class="pr">800 / 1 300 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Kalumba gin (dry / maracuja)</span></span><span class="mid"></span><span class="pr">700 / 1 200 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Bombay gin</span></span><span class="mid"></span><span class="pr">850 / 1 400 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Baileys / Garrone cherry / Malibu</span></span><span class="mid"></span><span class="pr">700 / 1 200 Ft</span></div><div class="mrow"><span class="txt"><span class="nm">Martini Bianco / Fiero (1 dl)</span></span><span class="mid"></span><span class="pr">1 250 Ft</span></div></div></div>
+      <p class="menu-allergen"><strong>Allergén tájékoztató:</strong> ételeink tartalmazhatnak gluténtartalmú gabonát, tejet/laktózt, tojást, dió- és mogyoróféléket, szóját, szezámmagot, halat, zellert, mustárt és egyéb allergéneket. Ételallergia esetén kérjük, kérje pincérünk segítségét.</p>
+      <div class="menu-cta"><a class="btn btn-outline" href="#">Teljes étlap letöltése (PDF)</a></div>
+    </div>
+
+    <div class="offer">
+      <div class="txt">
+        <div class="eyebrow">Aktuális</div>
+        <h2>Heti ajánlatunk</h2>
+        <p>Minden héten friss ajánlatok és napi menü. Nézd meg az e heti kínálatot, és foglalj asztalt vagy rendelj házhoz!</p>
+        <a class="btn btn-primary" href="#">Heti menü &amp; rendelés</a>
+      </div>
+      <div class="daily">
+        <div class="daily-head"><span class="dot"></span>Napi ajánlat</div>
+        <p class="daily-sub">Hétköznap 11:00–15:00</p>
+        <ul class="daily-list">
+          <li><span>Leves + főétel</span><b>1 990 Ft</b></li>
+          <li><span>Csak főétel</span><b>1 590 Ft</b></li>
+        </ul>
+        <p class="daily-note">A napi menü aktuális kínálatát keresse Facebook-oldalunkon, vagy hívjon minket.</p>
+      </div>
+    </div>
+
+    <div class="sec events">
+      <div class="eyebrow">Kert &amp; rendezvények</div>
+      <h2>Esküvők, családi és céges rendezvények</h2>
+      <p class="lead">Hangulatos kerthelyiség tóval, vízeséssel és pergolával, lenti termünkben tánctérrel — tökéletes helyszín a nagy napokhoz.</p>
+      <div class="ph"><img src="https://cdn.website.dish.co/media/85/e7/3211621/Kalocsaek-Vendegloje-21083186-1506550972716982-3483539529075078717-o.jpg" alt="Esküvői terem fényfüzérrel, terített asztalokkal"></div>
+      <div style="text-align:center;margin-top:18px"><a class="btn btn-primary" href="#">Ajánlatkérés rendezvényre</a></div>
+    </div>
+
+    <div class="sec alt">
+      <div class="eyebrow">Galéria</div>
+      <h2>Ízelítő a vendéglőből</h2>
+      <div class="slider" data-slider>
+        <img class="slide active" src="https://cdn.website.dish.co/media/ea/10/3211641/Kalocsaek-Vendegloje-21122272-1506550899383656-3829873631109190797-o.jpg" alt="Kerthelyiség, hangulatvilágítással">
+        <img class="slide" src="https://cdn.website.dish.co/media/d6/c2/3211626/Kalocsaek-Vendegloje-21083250-1506550879383658-4573451657324914661-o.jpg" alt="Belső termünk, tánctérrel">
+        <img class="slide" src="https://cdn.website.dish.co/media/dc/ad/3211651/Kalocsaek-Vendegloje-21167069-1506550906050322-2998888195887132782-o.jpg" alt="Pergola, szőlőlugas a kertben">
+        <img class="slide" src="https://cdn.website.dish.co/media/dd/47/3211671/Kalocsaek-Vendegloje-130835177-3640366182668773-1406645070084188086-o.jpg" alt="Bőséges sültestál">
+        <img class="slide" src="https://cdn.website.dish.co/media/85/e7/3211621/Kalocsaek-Vendegloje-21083186-1506550972716982-3483539529075078717-o.jpg" alt="Rendezvényterem fényfüzérrel">
+        <img class="slide" src="https://cdn.website.dish.co/media/75/be/3211591/Kalocsaek-Vendegloje-527714-530192393686183-1332935311-n.jpg" alt="Kemencés sültek">
+        <img class="slide" src="https://cdn.website.dish.co/media/65/72/3211601/Kalocsaek-Vendegloje-10492308-865789876793098-6227095371384042938-n.jpg" alt="Svédasztalos tálalás rendezvényre">
+        <button class="snav prev" data-prev aria-label="Előző kép">‹</button>
+        <button class="snav next" data-next aria-label="Következő kép">›</button>
+        <div class="sdots"></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="eyebrow">Kapcsolat</div>
+      <h2>Látogasson el hozzánk</h2>
+      <div class="cgrid2">
+        <div class="hours-card">
+          <div class="hc-top"><h3>Nyitvatartás</h3><span class="hc-status" data-status>Nyitvatartás</span></div>
+          <ul class="hc-days">
+            <li data-day="1"><span>Hétfő</span><b>11:00 – 21:00</b></li>
+            <li data-day="2"><span>Kedd</span><b>11:00 – 21:00</b></li>
+            <li data-day="3"><span>Szerda</span><b>11:00 – 21:00</b></li>
+            <li data-day="4"><span>Csütörtök</span><b>11:00 – 21:00</b></li>
+            <li data-day="5"><span>Péntek</span><b>11:00 – 22:00</b></li>
+            <li data-day="6"><span>Szombat</span><b>11:00 – 22:00</b></li>
+            <li data-day="0"><span>Vasárnap</span><b>11:00 – 21:00</b></li>
+          </ul>
+          <div class="hc-contact">
+            <a href="tel:+36707720291">📞 +36 70 772 0291</a>
+            <a href="mailto:kalocsaekvendegloje1957@gmail.com">✉️ kalocsaekvendegloje1957@gmail.com</a>
+            <span>📍 2700 Cegléd, Kőrösi út 36</span>
+          </div>
+        </div>
+        <div class="map-card">
+          <img src="https://maps.googleapis.com/maps/api/staticmap?zoom=15&size=640x440&center=47.164281,19.7954124&markers=color:0x7a1c2b%7C47.164281,19.7954124&language=hu" alt="Térkép — Cegléd, Kőrösi út 36">
+          <div class="map-ov"><span class="madr">2700 Cegléd, Kőrösi út 36 · parkolási lehetőséggel</span><a class="btn btn-primary" href="#">Útvonal</a></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot">
+      <span class="fname"><strong style="font-size:15px;font-family:Georgia,serif;color:var(--gold-light)">Kalocsáék Vendéglője 1957</strong><br>
+      2700 Cegléd, Kőrösi út 36 · +36 70 772 0291<br>
+      <a href="#">Facebook</a> · <a href="#">Étlap</a> · <a href="#">Rendezvények</a> · <a href="#">Adatvédelem</a></span>
+    </div>
+
+    <div class="mbar">
+      <a href="#"><span class="ic">📞</span>Hívás</a>
+      <a href="#"><span class="ic">📍</span>Útvonal</a>
+      <a href="#"><span class="ic">🍽️</span>Étlap</a>
+      <a class="hi" href="#"><span class="ic">📅</span>Foglalás</a>
+    </div>
+
+  </div>
+</template>
+
+<script>
+  const tpl=document.getElementById('tpl');
+  document.querySelectorAll('[data-page]').forEach(h=>h.appendChild(tpl.content.cloneNode(true)));
+  // hero háttér: logós faasztal (kezdőkép) <-> kerti fotó, 15 másodpercenként
+  setInterval(function(){
+    document.querySelectorAll('.hero').forEach(function(h){ h.classList.toggle('show-garden'); });
+  }, 15000);
+</script>
+
+<script>
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('.mtabs [data-mtab]');
+    if(!b) return;
+    var sec = b.closest('.menu-sec');
+    sec.querySelectorAll('.mtabs [data-mtab]').forEach(function(x){ x.classList.remove('active'); });
+    b.classList.add('active');
+    var id = b.getAttribute('data-mtab');
+    sec.querySelectorAll('.mpanel').forEach(function(p){ p.classList.toggle('active', p.getAttribute('data-mpanel')===id); });
+  });
+</script>
+<script>
+  document.querySelectorAll('.slider').forEach(function(sl){
+    var slides=sl.querySelectorAll('.slide'); if(!slides.length) return;
+    var dw=sl.querySelector('.sdots'); var idx=0, timer;
+    slides.forEach(function(s,i){ var d=document.createElement('button'); if(i===0)d.className='active'; d.addEventListener('click',function(){go(i);reset();}); dw.appendChild(d); });
+    var dots=dw.querySelectorAll('button');
+    function go(n){ slides[idx].classList.remove('active'); dots[idx].classList.remove('active'); idx=(n+slides.length)%slides.length; slides[idx].classList.add('active'); dots[idx].classList.add('active'); }
+    function reset(){ clearInterval(timer); timer=setInterval(function(){go(idx+1);},3000); }
+    sl.querySelector('[data-prev]').addEventListener('click',function(){go(idx-1);reset();});
+    sl.querySelector('[data-next]').addEventListener('click',function(){go(idx+1);reset();});
+    timer=setInterval(function(){go(idx+1);},3000);
+  });
+  (function(){
+    var H={0:[11,21],1:[11,21],2:[11,21],3:[11,21],4:[11,21],5:[11,22],6:[11,22]};
+    var n=new Date(), d=n.getDay(), h=n.getHours()+n.getMinutes()/60;
+    var open=H[d]&&h>=H[d][0]&&h<H[d][1];
+    document.querySelectorAll('[data-status]').forEach(function(s){ s.textContent=open?'Most nyitva':'Most zárva'; s.classList.add(open?'open':'closed'); });
+    document.querySelectorAll('.hc-days [data-day="'+d+'"]').forEach(function(li){ li.classList.add('today'); });
+  })();
+</script>
+</body>
+</html>
