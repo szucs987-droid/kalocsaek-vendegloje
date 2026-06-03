@@ -389,8 +389,54 @@ import Layout from '../layouts/Layout.astro';
       />
     </div>
     <div class="events-cta">
-      <a class="btn btn-gold" href="mailto:kalocsaekvendegloje1957@gmail.com?subject=Rendezvény%20ajánlatkérés">📧 Ajánlatkérés rendezvényre</a>
-      <a class="btn btn-wine-outline" href="tel:+36707720291">📞 Telefonon</a>
+      <button class="btn btn-gold" id="rendezv-toggle" type="button" aria-expanded="false" aria-controls="rendezv-panel">
+        Ajánlatkérés rendezvényre
+      </button>
+    </div>
+
+    <!-- Ajánlatkérő form (kinyíló) -->
+    <div class="rendezv-panel" id="rendezv-panel" aria-hidden="true">
+      <form class="rendezv-form" id="rendezv-form" novalidate>
+        <div class="rf-grid">
+          <div class="rf-field">
+            <label for="rf-nev">Név <span class="rf-req" aria-hidden="true">*</span></label>
+            <input type="text" id="rf-nev" name="nev" required placeholder="Az Ön neve" autocomplete="name" />
+          </div>
+          <div class="rf-field">
+            <label for="rf-tel">Telefonszám <span class="rf-req" aria-hidden="true">*</span></label>
+            <input type="tel" id="rf-tel" name="telefon" required placeholder="+36 70 000 0000" autocomplete="tel" />
+          </div>
+          <div class="rf-field">
+            <label for="rf-email">E-mail cím</label>
+            <input type="email" id="rf-email" name="email" placeholder="pelda@email.hu" autocomplete="email" />
+          </div>
+          <div class="rf-field">
+            <label for="rf-tipus">Rendezvény típusa <span class="rf-req" aria-hidden="true">*</span></label>
+            <select id="rf-tipus" name="tipus" required>
+              <option value="" disabled selected>Válasszon…</option>
+              <option value="Esküvő">Esküvő</option>
+              <option value="Keresztelő">Keresztelő</option>
+              <option value="Ballagás">Ballagás</option>
+              <option value="Osztálytalálkozó">Osztálytalálkozó</option>
+              <option value="Céges rendezvény">Céges rendezvény</option>
+              <option value="Születésnap">Születésnap</option>
+              <option value="Egyéb">Egyéb</option>
+            </select>
+          </div>
+          <div class="rf-field rf-egyeb" id="rf-egyeb-wrap">
+            <label for="rf-egyeb">Rendezvény megnevezése <span class="rf-req" aria-hidden="true">*</span></label>
+            <input type="text" id="rf-egyeb" name="tipus_egyeb" placeholder="Írja le a rendezvény típusát" />
+          </div>
+        </div>
+        <div class="rf-field rf-full">
+          <label for="rf-reszlet">Részletek, kérések</label>
+          <textarea id="rf-reszlet" name="reszlet" rows="5" placeholder="Várható vendégszám, tervezett időpont, különleges kérések, egyéb tudnivalók…"></textarea>
+        </div>
+        <div class="rf-footer">
+          <p class="rf-note"><span class="rf-req">*</span> kötelező mező · Válaszolunk 24 órán belül</p>
+          <button type="submit" class="btn btn-gold btn-lg">Ajánlatkérés elküldése</button>
+        </div>
+      </form>
     </div>
   </section>
 
@@ -1040,6 +1086,79 @@ import Layout from '../layouts/Layout.astro';
     flex-wrap: wrap;
   }
 
+  /* ===== AJÁNLATKÉRŐ FORM ===== */
+  .rendezv-panel {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .45s ease;
+  }
+  .rendezv-panel.open { max-height: 900px; }
+
+  .rendezv-form {
+    background: var(--cream2);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: clamp(1.25rem, 3vw, 2rem);
+    margin-top: 1.25rem;
+    text-align: left;
+  }
+
+  .rf-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+  @media (max-width: 639px) { .rf-grid { grid-template-columns: 1fr; } }
+
+  .rf-field { display: flex; flex-direction: column; gap: .35rem; }
+  .rf-full { margin-bottom: 1rem; }
+
+  .rf-egyeb { display: none; }
+  .rf-egyeb.visible { display: flex; }
+
+  .rf-field label {
+    font-size: .85rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .rf-req { color: var(--terra); }
+
+  .rf-field input,
+  .rf-field select,
+  .rf-field textarea {
+    font-family: var(--font-sans);
+    font-size: .95rem;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    padding: .55rem .85rem;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+    width: 100%;
+  }
+  .rf-field input:focus,
+  .rf-field select:focus,
+  .rf-field textarea:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(192,138,46,.15);
+  }
+  .rf-field textarea { resize: vertical; min-height: 110px; }
+  .rf-field select { cursor: pointer; }
+
+  .rf-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .75rem;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--line);
+  }
+  .rf-note { font-size: .8rem; color: var(--muted); margin: 0; }
+
   /* ===== GALLERY SLIDER ===== */
   .slider {
     position: relative;
@@ -1347,6 +1466,69 @@ import Layout from '../layouts/Layout.astro';
     document.querySelectorAll<HTMLElement>('.hc-days li[data-day]').forEach(li => {
       if (parseInt(li.dataset.day ?? '-1') === day) li.classList.add('today');
     });
+  })();
+
+  // ===== Rendezvény ajánlatkérő form =====
+  (function () {
+    const toggleBtn = document.getElementById('rendezv-toggle') as HTMLButtonElement | null;
+    const panel     = document.getElementById('rendezv-panel');
+    const form      = document.getElementById('rendezv-form') as HTMLFormElement | null;
+    const tipusSel  = document.getElementById('rf-tipus')  as HTMLSelectElement | null;
+    const egyebWrap = document.getElementById('rf-egyeb-wrap');
+    const egyebInp  = document.getElementById('rf-egyeb')  as HTMLInputElement | null;
+
+    // Toggle kinyitás/becsukás
+    if (toggleBtn && panel) {
+      toggleBtn.addEventListener('click', () => {
+        const open = panel.classList.toggle('open');
+        toggleBtn.setAttribute('aria-expanded', String(open));
+        panel.setAttribute('aria-hidden', String(!open));
+        if (open) setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+      });
+    }
+
+    // Egyéb típus mező megjelenítése
+    if (tipusSel && egyebWrap && egyebInp) {
+      tipusSel.addEventListener('change', () => {
+        const isEgyeb = tipusSel.value === 'Egyéb';
+        egyebWrap.classList.toggle('visible', isEgyeb);
+        egyebInp.required = isEgyeb;
+      });
+    }
+
+    // Form beküldés: mailto összeállítás
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const nev      = (document.getElementById('rf-nev')    as HTMLInputElement).value.trim();
+        const tel      = (document.getElementById('rf-tel')    as HTMLInputElement).value.trim();
+        const email    = (document.getElementById('rf-email')  as HTMLInputElement).value.trim();
+        const tipus    = tipusSel?.value === 'Egyéb'
+                          ? (egyebInp?.value.trim() || 'Egyéb')
+                          : (tipusSel?.value || '');
+        const reszlet  = (document.getElementById('rf-reszlet') as HTMLTextAreaElement).value.trim();
+
+        if (!nev || !tel || !tipus) {
+          alert('Kérjük, töltse ki a kötelező mezőket (Név, Telefonszám, Rendezvény típusa).');
+          return;
+        }
+
+        const subject = `Rendezvény ajánlatkérés — ${tipus}`;
+        const body = [
+          `Név: ${nev}`,
+          `Telefon: ${tel}`,
+          email ? `E-mail: ${email}` : '',
+          `Rendezvény típusa: ${tipus}`,
+          '',
+          reszlet ? `Részletek:\n${reszlet}` : '',
+        ].filter(Boolean).join('\n');
+
+        window.location.href =
+          `mailto:kalocsaekvendegloje1957@gmail.com` +
+          `?subject=${encodeURIComponent(subject)}` +
+          `&body=${encodeURIComponent(body)}`;
+      });
+    }
   })();
 
   // Mobile menu toggle
