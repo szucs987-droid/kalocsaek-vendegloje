@@ -1,0 +1,20 @@
+{
+  "name": "kalocsaek-vendegloje",
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "wrangler pages dev",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^13.6.1",
+    "astro": "^6.4.3"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260603.1",
+    "wrangler": "^4.97.0"
+  }
+}

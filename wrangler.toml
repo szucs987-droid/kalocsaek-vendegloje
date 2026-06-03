@@ -1,0 +1,8 @@
+name = "kalocsaek-vendegloje"
+compatibility_date = "2026-06-03"
+pages_build_output_dir = "./dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "kalocsaek-db"
+database_id = "e7025d7c-ae44-4a60-906b-f8ef38dc4e52"

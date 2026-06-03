@@ -1,0 +1,185 @@
+---
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Kalocsáék Vendéglője 1957 — Cegléd',
+  description = 'Kalocsáék Vendéglője 1957 — Szépet, jót, finomat! Magyaros, házias konyha Cegléden 1957 óta. Asztalfoglalás, étlap, rendezvények.',
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, 'https://kalocsaekvendegloje.hu');
+---
+
+<!doctype html>
+<html lang="hu">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content="https://kalocsaekvendegloje.hu/kalocsa_table_2.png" />
+    <meta property="og:locale" content="hu_HU" />
+
+    <!-- Favicon placeholder -->
+    <link rel="icon" type="image/png" href="/logo_atlatszo.png" />
+
+    <!-- JSON-LD structured data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Restaurant",
+        "name": "Kalocsáék Vendéglője 1957",
+        "description": "Magyaros, házias konyha Cegléden 1957 óta. Kert, kemence, rendezvények, házhozszállítás.",
+        "url": "https://kalocsaekvendegloje.hu",
+        "telephone": "+36707720291",
+        "email": "kalocsaekvendegloje1957@gmail.com",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Kőrösi út 36",
+          "addressLocality": "Cegléd",
+          "postalCode": "2700",
+          "addressCountry": "HU"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 47.1714,
+          "longitude": 19.7995
+        },
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Sunday"],
+            "opens": "11:00",
+            "closes": "21:00"
+          },
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Friday", "Saturday"],
+            "opens": "11:00",
+            "closes": "22:00"
+          }
+        ],
+        "servesCuisine": "Hungarian",
+        "priceRange": "$$",
+        "sameAs": ["https://www.facebook.com/kalocsaekvendegloje"]
+      }
+    </script>
+
+    <style is:global>
+      /* ===== Design tokens ===== */
+      :root {
+        --wine: #7a1c2b;
+        --wine-deep: #591019;
+        --terra: #b5532e;
+        --terra-deep: #9a3f1f;
+        --gold: #c08a2e;
+        --gold-light: #e3c074;
+        --cream: #f7efe1;
+        --cream2: #fcf7ec;
+        --paper: #fffdf8;
+        --ink: #3a2a22;
+        --muted: #6e5d50;
+        --line: #e7dcc8;
+
+        --font-serif: Georgia, 'Times New Roman', serif;
+        --font-sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+        --shadow-sm: 0 1px 3px rgba(58, 42, 34, .12);
+        --shadow-md: 0 4px 16px rgba(58, 42, 34, .16);
+        --shadow-lg: 0 8px 32px rgba(58, 42, 34, .2);
+
+        --radius: 8px;
+        --radius-lg: 16px;
+
+        --header-height: 72px;
+      }
+
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      html { scroll-behavior: smooth; }
+
+      body {
+        font-family: var(--font-sans);
+        color: var(--ink);
+        background: var(--paper);
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
+
+      img { max-width: 100%; height: auto; display: block; }
+
+      a { color: inherit; text-decoration: none; }
+
+      h1, h2, h3, h4 {
+        font-family: var(--font-serif);
+        line-height: 1.25;
+        color: var(--wine);
+      }
+
+      /* ===== Utility ===== */
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 clamp(1rem, 4vw, 2.5rem);
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        padding: .65rem 1.4rem;
+        border-radius: var(--radius);
+        font-size: .95rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: background .2s, color .2s, transform .15s;
+        white-space: nowrap;
+      }
+      .btn:active { transform: scale(.97); }
+
+      .btn-primary {
+        background: var(--gold);
+        color: #fff;
+        border-color: var(--gold);
+      }
+      .btn-primary:hover { background: var(--gold-light); border-color: var(--gold-light); color: var(--ink); }
+
+      .btn-outline {
+        background: transparent;
+        color: #fff;
+        border-color: rgba(255,255,255,.6);
+      }
+      .btn-outline:hover { background: rgba(255,255,255,.15); border-color: #fff; }
+
+      .section-title {
+        font-size: clamp(1.75rem, 4vw, 2.5rem);
+        text-align: center;
+        margin-bottom: .5rem;
+      }
+      .section-sub {
+        text-align: center;
+        color: var(--muted);
+        font-size: 1.05rem;
+        margin-bottom: 2.5rem;
+      }
+
+      /* ===== Scrollbar ===== */
+      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar-track { background: var(--cream2); }
+      ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
