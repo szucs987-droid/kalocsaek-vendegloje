@@ -1,15 +1,5 @@
 ---
 import Layout from '../layouts/Layout.astro';
-
-// Server-side open/closed using Budapest timezone
-const now = new Date();
-const bp = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Budapest' }));
-const todayDay = bp.getDay(); // 0=Sun
-const currentHour = bp.getHours() + bp.getMinutes() / 60;
-const hrs: Record<number, [number, number]> = {
-  0:[11,21], 1:[11,21], 2:[11,21], 3:[11,21], 4:[11,21], 5:[11,22], 6:[11,22],
-};
-const isOpen = currentHour >= hrs[todayDay][0] && currentHour < hrs[todayDay][1];
 ---
 
 <Layout>
@@ -71,9 +61,7 @@ const isOpen = currentHour >= hrs[todayDay][0] && currentHour < hrs[todayDay][1]
     </a>
     <a href="#kapcsolat">
       <span class="ic" aria-hidden="true">🕒</span>Nyitvatartás
-      <small class:list={[isOpen ? 'open' : 'closed']}>
-        {isOpen ? 'Ma nyitva' : 'Ma zárva'}
-      </small>
+      <small id="status-quick"></small>
     </a>
   </div>
 
@@ -421,18 +409,16 @@ const isOpen = currentHour >= hrs[todayDay][0] && currentHour < hrs[todayDay][1]
       <div class="hours-card">
         <div class="hc-top">
           <h3>Nyitvatartás</h3>
-          <span class:list={['hc-status', isOpen ? 'open' : 'closed']}>
-            {isOpen ? 'Most nyitva' : 'Most zárva'}
-          </span>
+          <span class="hc-status" id="status-badge"></span>
         </div>
         <ul class="hc-days">
-          <li class:list={[todayDay === 1 ? 'today' : '']}><span>Hétfő</span><strong>11:00 – 21:00</strong></li>
-          <li class:list={[todayDay === 2 ? 'today' : '']}><span>Kedd</span><strong>11:00 – 21:00</strong></li>
-          <li class:list={[todayDay === 3 ? 'today' : '']}><span>Szerda</span><strong>11:00 – 21:00</strong></li>
-          <li class:list={[todayDay === 4 ? 'today' : '']}><span>Csütörtök</span><strong>11:00 – 21:00</strong></li>
-          <li class:list={[todayDay === 5 ? 'today' : '']}><span>Péntek</span><strong>11:00 – 22:00</strong></li>
-          <li class:list={[todayDay === 6 ? 'today' : '']}><span>Szombat</span><strong>11:00 – 22:00</strong></li>
-          <li class:list={[todayDay === 0 ? 'today' : '']}><span>Vasárnap</span><strong>11:00 – 21:00</strong></li>
+          <li data-day="1"><span>Hétfő</span><strong>11:00 – 21:00</strong></li>
+          <li data-day="2"><span>Kedd</span><strong>11:00 – 21:00</strong></li>
+          <li data-day="3"><span>Szerda</span><strong>11:00 – 21:00</strong></li>
+          <li data-day="4"><span>Csütörtök</span><strong>11:00 – 21:00</strong></li>
+          <li data-day="5"><span>Péntek</span><strong>11:00 – 22:00</strong></li>
+          <li data-day="6"><span>Szombat</span><strong>11:00 – 22:00</strong></li>
+          <li data-day="0"><span>Vasárnap</span><strong>11:00 – 21:00</strong></li>
         </ul>
         <div class="hc-contact">
           <a href="tel:+36707720291">📞 +36 70 772 0291</a>
@@ -1255,6 +1241,30 @@ const isOpen = currentHour >= hrs[todayDay][0] && currentHour < hrs[todayDay][1]
     sl.querySelector('[data-next]')?.addEventListener('click', () => { go(idx + 1); reset(); });
     timer = setInterval(() => go(idx + 1), 3000);
   });
+
+  // Open/closed indicator — computed client-side in Budapest timezone
+  (function () {
+    const now = new Date();
+    const bp = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Budapest' }));
+    const day = bp.getDay(); // 0=Sun
+    const hour = bp.getHours() + bp.getMinutes() / 60;
+    // Fri(5) + Sat(6) close at 22:00, every other day at 21:00
+    const closeH = (day === 5 || day === 6) ? 22 : 21;
+    const isOpen = hour >= 11 && hour < closeH;
+
+    // Quick-actions row
+    const sq = document.getElementById('status-quick');
+    if (sq) { sq.textContent = isOpen ? 'Ma nyitva' : 'Ma zárva'; sq.className = isOpen ? 'open' : 'closed'; }
+
+    // Hours-card badge
+    const sb = document.getElementById('status-badge');
+    if (sb) { sb.textContent = isOpen ? 'Most nyitva' : 'Most zárva'; sb.classList.add(isOpen ? 'open' : 'closed'); }
+
+    // Today day highlight
+    document.querySelectorAll<HTMLElement>('.hc-days li[data-day]').forEach(li => {
+      if (parseInt(li.dataset.day ?? '-1') === day) li.classList.add('today');
+    });
+  })();
 
   // Mobile menu toggle
   const burgerBtn = document.querySelector<HTMLButtonElement>('.burger');

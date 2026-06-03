@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build && node scripts/postbuild.mjs",
+    "build": "astro build",
     "preview": "wrangler pages dev",
     "astro": "astro"
   },
