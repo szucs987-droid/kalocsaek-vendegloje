@@ -22,7 +22,7 @@ const clean = {
   main: raw.main,
   no_bundle: raw.no_bundle,
   rules: raw.rules,
-  assets: raw.assets,
+  // 'assets' omitted: Pages auto-creates the ASSETS binding from pages_build_output_dir
   ...(raw.d1_databases?.length ? { d1_databases: raw.d1_databases } : {}),
 };
 
