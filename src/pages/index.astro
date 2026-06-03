@@ -431,6 +431,19 @@ import Layout from '../layouts/Layout.astro';
             <label for="rf-letszam">Várható létszám</label>
             <input type="number" id="rf-letszam" name="letszam" min="1" max="500" placeholder="pl. 50 fő" />
           </div>
+          <div class="rf-field rf-idopont">
+            <span class="rf-group-label">Rendezvény időpontja</span>
+            <div class="rf-dt-row">
+              <div class="rf-field">
+                <label for="rf-kezdete">Kezdete</label>
+                <input type="datetime-local" id="rf-kezdete" name="kezdete" />
+              </div>
+              <div class="rf-field">
+                <label for="rf-vege">Vége</label>
+                <input type="datetime-local" id="rf-vege" name="vege" />
+              </div>
+            </div>
+          </div>
         </div>
         <div class="rf-field rf-full">
           <label for="rf-reszlet">Részletek, kérések</label>
@@ -1121,6 +1134,21 @@ import Layout from '../layouts/Layout.astro';
   .rf-egyeb { display: none; }
   .rf-egyeb.visible { display: flex; }
 
+  .rf-group-label {
+    font-size: .85rem;
+    font-weight: 700;
+    color: var(--ink);
+    display: block;
+    margin-bottom: .35rem;
+  }
+  .rf-dt-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .6rem;
+  }
+  .rf-dt-row .rf-field label { font-size: .78rem; color: var(--muted); font-weight: 600; }
+  .rf-idopont { grid-column: span 1; }
+
   .rf-field label {
     font-size: .85rem;
     font-weight: 700;
@@ -1510,8 +1538,13 @@ import Layout from '../layouts/Layout.astro';
         const tipus    = tipusSel?.value === 'Egyéb'
                           ? (egyebInp?.value.trim() || 'Egyéb')
                           : (tipusSel?.value || '');
-        const letszam  = (document.getElementById('rf-letszam') as HTMLInputElement).value.trim();
+        const letszam  = (document.getElementById('rf-letszam')  as HTMLInputElement).value.trim();
+        const kezdete  = (document.getElementById('rf-kezdete')  as HTMLInputElement).value;
+        const vege     = (document.getElementById('rf-vege')     as HTMLInputElement).value;
         const reszlet  = (document.getElementById('rf-reszlet') as HTMLTextAreaElement).value.trim();
+
+        const fmtDt = (v: string) => v ? v.replace('T', ' ') : '';
+
 
         if (!nev || !tel || !tipus) {
           alert('Kérjük, töltse ki a kötelező mezőket (Név, Telefonszám, Rendezvény típusa).');
@@ -1525,6 +1558,7 @@ import Layout from '../layouts/Layout.astro';
           email ? `E-mail: ${email}` : '',
           `Rendezvény típusa: ${tipus}`,
           letszam ? `Várható létszám: ${letszam} fő` : '',
+          (kezdete || vege) ? `Rendezvény időpontja: ${fmtDt(kezdete)}${vege ? ' – ' + fmtDt(vege) : ''}` : '',
           '',
           reszlet ? `Részletek:\n${reszlet}` : '',
         ].filter(Boolean).join('\n');
