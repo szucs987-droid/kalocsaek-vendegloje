@@ -1,14 +1,19 @@
 import { writeFileSync, rmSync, existsSync } from 'fs';
 
-// 1. Delete the adapter-generated dist/server/wrangler.json.
-//    Cloudflare Pages' BETA redirected-config feature picks this file up and
-//    validates it with Pages-specific rules that forbid "main" and "rules" —
-//    fields the adapter always writes. Deleting it makes Pages fall back to the
-//    root wrangler.toml (which already has pages_build_output_dir + D1 binding).
+// 1. Delete the adapter-generated wrangler redirect files.
+//    The adapter writes dist/server/wrangler.json AND .wrangler/deploy/config.json.
+//    config.json is a pointer to wrangler.json. Pages reads the pointer first;
+//    if wrangler.json is gone but config.json still exists, Pages errors.
+//    Delete both so Pages falls back to the root wrangler.toml.
 const adapterWrangler = 'dist/server/wrangler.json';
 if (existsSync(adapterWrangler)) {
   rmSync(adapterWrangler);
   console.log('postbuild: deleted dist/server/wrangler.json');
+}
+const deployConfig = '.wrangler/deploy/config.json';
+if (existsSync(deployConfig)) {
+  rmSync(deployConfig);
+  console.log('postbuild: deleted .wrangler/deploy/config.json');
 }
 
 // 2. Create dist/_worker.js — the Cloudflare Pages Advanced Mode Worker shim.
