@@ -1,30 +1,24 @@
-import { readFileSync, writeFileSync } from 'fs';
+import { writeFileSync, rmSync, existsSync } from 'fs';
 
-const path = 'dist/server/wrangler.json';
-
-let raw;
-try {
-  raw = JSON.parse(readFileSync(path, 'utf8'));
-} catch {
-  // File doesn't exist — nothing to do
-  process.exit(0);
+// 1. Delete the adapter-generated dist/server/wrangler.json.
+//    Cloudflare Pages' BETA redirected-config feature picks this file up and
+//    validates it with Pages-specific rules that forbid "main" and "rules" —
+//    fields the adapter always writes. Deleting it makes Pages fall back to the
+//    root wrangler.toml (which already has pages_build_output_dir + D1 binding).
+const adapterWrangler = 'dist/server/wrangler.json';
+if (existsSync(adapterWrangler)) {
+  rmSync(adapterWrangler);
+  console.log('postbuild: deleted dist/server/wrangler.json');
 }
 
-// Keep only fields the Cloudflare Pages build system understands.
-// Strip all wrangler 4.x-only fields that cause "unknown field" failures.
-// pages_build_output_dir is required — without it Pages rejects the file and
-// falls back to static-only mode (no Worker deployed).
-const clean = {
-  name: raw.name,
-  compatibility_date: raw.compatibility_date,
-  ...(raw.compatibility_flags?.length ? { compatibility_flags: raw.compatibility_flags } : {}),
-  pages_build_output_dir: '../client',
-  main: raw.main,
-  no_bundle: raw.no_bundle,
-  rules: raw.rules,
-  // 'assets' omitted: Pages auto-creates the ASSETS binding from pages_build_output_dir
-  ...(raw.d1_databases?.length ? { d1_databases: raw.d1_databases } : {}),
-};
+// 2. Create dist/_worker.js — the Cloudflare Pages Advanced Mode Worker shim.
+//    Pages picks up _worker.js from pages_build_output_dir (./dist) and deploys
+//    it as the Worker. Both this file and dist/server/ are inside dist/ so all
+//    relative imports resolve correctly.
+writeFileSync('dist/_worker.js', "export { default } from './server/entry.mjs';\n");
+console.log('postbuild: created dist/_worker.js');
 
-writeFileSync(path, JSON.stringify(clean, null, 2));
-console.log('postbuild: cleaned dist/server/wrangler.json');
+// 3. Write dist/.assetsignore so Pages does not try to serve the server code or
+//    the wrangler config as static files.
+writeFileSync('dist/.assetsignore', 'server\nwrangler.json\n.dev.vars\n');
+console.log('postbuild: wrote dist/.assetsignore');
