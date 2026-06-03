@@ -427,10 +427,14 @@ import Layout from '../layouts/Layout.astro';
             <label for="rf-egyeb">Rendezvény megnevezése <span class="rf-req" aria-hidden="true">*</span></label>
             <input type="text" id="rf-egyeb" name="tipus_egyeb" placeholder="Írja le a rendezvény típusát" />
           </div>
+          <div class="rf-field">
+            <label for="rf-letszam">Várható létszám</label>
+            <input type="number" id="rf-letszam" name="letszam" min="1" max="500" placeholder="pl. 50 fő" />
+          </div>
         </div>
         <div class="rf-field rf-full">
           <label for="rf-reszlet">Részletek, kérések</label>
-          <textarea id="rf-reszlet" name="reszlet" rows="5" placeholder="Várható vendégszám, tervezett időpont, különleges kérések, egyéb tudnivalók…"></textarea>
+          <textarea id="rf-reszlet" name="reszlet" rows="5" placeholder="Tervezett időpont, különleges kérések, egyéb tudnivalók…"></textarea>
         </div>
         <div class="rf-footer">
           <p class="rf-note"><span class="rf-req">*</span> kötelező mező · Válaszolunk 24 órán belül</p>
@@ -1506,6 +1510,7 @@ import Layout from '../layouts/Layout.astro';
         const tipus    = tipusSel?.value === 'Egyéb'
                           ? (egyebInp?.value.trim() || 'Egyéb')
                           : (tipusSel?.value || '');
+        const letszam  = (document.getElementById('rf-letszam') as HTMLInputElement).value.trim();
         const reszlet  = (document.getElementById('rf-reszlet') as HTMLTextAreaElement).value.trim();
 
         if (!nev || !tel || !tipus) {
@@ -1519,6 +1524,7 @@ import Layout from '../layouts/Layout.astro';
           `Telefon: ${tel}`,
           email ? `E-mail: ${email}` : '',
           `Rendezvény típusa: ${tipus}`,
+          letszam ? `Várható létszám: ${letszam} fő` : '',
           '',
           reszlet ? `Részletek:\n${reszlet}` : '',
         ].filter(Boolean).join('\n');
