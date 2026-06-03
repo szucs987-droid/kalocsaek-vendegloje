@@ -51,7 +51,7 @@ const isOpen = currentHour >= hrs[todayDay][0] && currentHour < hrs[todayDay][1]
       <p class="slogan">„Szépet, jót, finomat!"</p>
       <p class="hero-sub">Házias magyar konyha hangulatos kertben — pergola, kemence és igazi<br>családi vendéglátás 1957 óta.</p>
       <div class="hero-btns">
-        <a class="btn btn-gold" href="#foglalas">📅 Asztalfoglalás</a>
+        <a class="btn btn-gold" href="#foglalas">Asztalfoglalás</a>
         <a class="btn btn-cream" href="#ajanlat">Napi menü</a>
         <a class="btn btn-ghost" href="#etlap">Étlap megtekintése</a>
       </div>
@@ -103,6 +103,7 @@ const isOpen = currentHour >= hrs[todayDay][0] && currentHour < hrs[todayDay][1]
     <p class="lead">Házias magyar konyha, bőséges adagok — helyben és házhoz szállítva is. A fő húsételekhez köret szabadon választható.</p>
 
     <!-- Featured cards -->
+    <h3 class="menu-section-label">Kiemelt ajánlatunk</h3>
     <div class="menu-cards">
       <div class="menu-card">
         <div class="menu-card-photo">
@@ -137,6 +138,7 @@ const isOpen = currentHour >= hrs[todayDay][0] && currentHour < hrs[todayDay][1]
     </div>
 
     <!-- Category tabs -->
+    <h3 class="menu-section-label" style="margin-top:2.5rem">Teljes étlap</h3>
     <div class="mtabs" role="tablist" aria-label="Étlap kategóriák">
       <button class="active" role="tab" data-mtab="levesek" aria-selected="true" aria-controls="panel-levesek">Levesek</button>
       <button role="tab" data-mtab="sultes" aria-selected="false" aria-controls="panel-sultes">Sültes tálak</button>
@@ -599,7 +601,7 @@ const isOpen = currentHour >= hrs[todayDay][0] && currentHour < hrs[todayDay][1]
   /* ===== HERO ===== */
   .hero {
     position: relative;
-    min-height: 420px;
+    min-height: 588px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -777,9 +779,9 @@ const isOpen = currentHour >= hrs[todayDay][0] && currentHour < hrs[todayDay][1]
     gap: 2rem;
     align-items: center;
   }
-  .story h2 { text-align: left; font-size: clamp(1.5rem, 3vw, 2rem); margin: 0 0 12px; }
-  .story .lead { text-align: left; margin: 0 0 14px; }
-  .story-text { text-align: left; }
+  .story h2 { text-align: center; font-size: clamp(1.5rem, 3vw, 2rem); margin: 0 0 12px; }
+  .story .lead { text-align: center; margin: 0 0 14px; }
+  .story-text { text-align: center; }
   .founders { font-size: .9rem; color: var(--muted); }
   .founders strong { color: var(--wine); }
 
@@ -815,6 +817,14 @@ const isOpen = currentHour >= hrs[todayDay][0] && currentHour < hrs[todayDay][1]
   }
 
   /* ===== MENU ===== */
+  .menu-section-label {
+    text-align: center;
+    font-family: var(--font-serif);
+    color: var(--wine);
+    font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+    margin: 0 0 1.5rem;
+  }
+
   .menu-cards {
     display: grid;
     grid-template-columns: 1fr;
