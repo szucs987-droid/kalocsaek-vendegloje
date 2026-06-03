@@ -1,4 +1,5 @@
 ---
+export const prerender = false;
 import Layout from '../layouts/Layout.astro';
 ---
 
@@ -1528,9 +1529,9 @@ import Layout from '../layouts/Layout.astro';
       });
     }
 
-    // Form beküldés: mailto összeállítás
+    // Form beküldés: POST API-ra mentés + visszaigazolás
     if (form) {
-      form.addEventListener('submit', (e) => {
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const nev      = (document.getElementById('rf-nev')    as HTMLInputElement).value.trim();
         const tel      = (document.getElementById('rf-tel')    as HTMLInputElement).value.trim();
@@ -1543,30 +1544,49 @@ import Layout from '../layouts/Layout.astro';
         const vege     = (document.getElementById('rf-vege')     as HTMLInputElement).value;
         const reszlet  = (document.getElementById('rf-reszlet') as HTMLTextAreaElement).value.trim();
 
-        const fmtDt = (v: string) => v ? v.replace('T', ' ') : '';
-
-
         if (!nev || !tel || !tipus) {
           alert('Kérjük, töltse ki a kötelező mezőket (Név, Telefonszám, Rendezvény típusa).');
           return;
         }
 
-        const subject = `Rendezvény ajánlatkérés — ${tipus}`;
-        const body = [
-          `Név: ${nev}`,
-          `Telefon: ${tel}`,
-          email ? `E-mail: ${email}` : '',
-          `Rendezvény típusa: ${tipus}`,
-          letszam ? `Várható létszám: ${letszam} fő` : '',
-          (kezdete || vege) ? `Rendezvény időpontja: ${fmtDt(kezdete)}${vege ? ' – ' + fmtDt(vege) : ''}` : '',
-          '',
-          reszlet ? `Részletek:\n${reszlet}` : '',
-        ].filter(Boolean).join('\n');
+        const btn = form.querySelector<HTMLButtonElement>('[type="submit"]')!;
+        btn.disabled = true;
+        btn.textContent = 'Küldés…';
 
-        window.location.href =
-          `mailto:kalocsaekvendegloje1957@gmail.com` +
-          `?subject=${encodeURIComponent(subject)}` +
-          `&body=${encodeURIComponent(body)}`;
+        try {
+          const res = await fetch('/api/inquiries', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: nev, phone: tel, email: email || null,
+              event_type: tipus,
+              headcount: letszam ? Number(letszam) : null,
+              starts_at: kezdete || null,
+              ends_at: vege || null,
+              details: reszlet || null,
+            }),
+          });
+
+          if (!res.ok) throw new Error('API hiba');
+
+          // Siker: visszaigazolás a form helyén
+          form.innerHTML = `
+            <div style="text-align:center;padding:2rem 1rem">
+              <div style="font-size:2.5rem;margin-bottom:12px">✅</div>
+              <p style="font-size:1.1rem;font-weight:700;color:var(--wine);font-family:Georgia,serif">
+                Köszönjük érdeklődését!
+              </p>
+              <p style="color:var(--muted);margin-top:8px">
+                Munkatársunk 24 órán belül felveszi Önnel a kapcsolatot.<br>
+                Sürgős esetben hívjon minket: <a href="tel:+36707720291" style="color:var(--wine)">+36 70 772 0291</a>
+              </p>
+            </div>
+          `;
+        } catch {
+          btn.disabled = false;
+          btn.textContent = 'Ajánlatkérés elküldése';
+          alert('Hiba történt a küldés során. Kérjük, hívjon minket: +36 70 772 0291');
+        }
       });
     }
   })();

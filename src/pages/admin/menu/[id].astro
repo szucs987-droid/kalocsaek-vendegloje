@@ -1,0 +1,163 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+
+const db = Astro.locals.runtime?.env?.DB;
+const { id } = Astro.params;
+
+let item: any = null;
+if (db) {
+  try {
+    item = await db.prepare('SELECT * FROM menu_items WHERE id = ?').bind(id).first();
+  } catch {}
+}
+
+if (!item) return new Response('Not found', { status: 404 });
+
+const CATEGORIES = [
+  'Levesek','Sültes tálak','Gyerek menu','Szárnyasok','Kacsa','Sertés',
+  'Marhasültek','Pörköltek','Halak','Tészták','Rántottak','Hamburgerek',
+  'Köretek','Saláták','Szószok','Desszertek','Italok'
+];
+const knownCat = CATEGORIES.includes(item.category);
+---
+<AdminLayout title={`Szerkesztés: ${item.name}`} activeNav="menu">
+  <div class="page-header">
+    <div>
+      <h1>Tétel szerkesztése</h1>
+      <p><a href="/admin/menu" style="color:var(--wine)">← Vissza az étlaphoz</a></p>
+    </div>
+    <button class="btn btn-danger" id="delete-btn">Törlés</button>
+  </div>
+
+  <div class="card" style="max-width:700px">
+    <form id="menu-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="category">Kategória *</label>
+          <select id="category" name="category" required>
+            {CATEGORIES.map(c => (
+              <option value={c} selected={item.category === c}>{c}</option>
+            ))}
+            <option value="__custom" selected={!knownCat}>— Egyéb (kézzel megad) —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="subcategory">Alkategória</label>
+          <input type="text" id="subcategory" name="subcategory" value={item.subcategory || ''} placeholder="pl. 2 személyes" />
+        </div>
+      </div>
+      <div id="custom-cat-wrap" class="form-group" style={knownCat ? 'display:none' : ''}>
+        <label for="custom-category">Egyéni kategória neve *</label>
+        <input type="text" id="custom-category" name="custom_category" value={!knownCat ? item.category : ''} placeholder="Kategória neve" required={!knownCat} />
+      </div>
+      <div class="form-group">
+        <label for="name">Fogás neve *</label>
+        <input type="text" id="name" name="name" required value={item.name} />
+      </div>
+      <div class="form-group">
+        <label for="description">Leírás</label>
+        <textarea id="description" name="description" rows="3">{item.description || ''}</textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="price_display">Ár (megjelenítési szöveg)</label>
+          <input type="text" id="price_display" name="price_display" value={item.price_display || ''} />
+        </div>
+        <div class="form-group">
+          <label for="price_min">Minimum ár (Ft)</label>
+          <input type="number" id="price_min" name="price_min" value={item.price_min || ''} min="0" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="allergens">Allergének</label>
+        <input type="text" id="allergens" name="allergens" value={item.allergens || ''} />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="sort_order">Sorrend</label>
+          <input type="number" id="sort_order" name="sort_order" value={item.sort_order ?? 0} min="0" />
+        </div>
+        <div class="form-group" style="justify-content:flex-end;padding-top:24px;gap:14px;flex-direction:row;align-items:center">
+          <label style="display:flex;align-items:center;gap:6px;font-weight:600;cursor:pointer">
+            <input type="checkbox" id="is_featured" name="is_featured" value="1" checked={!!item.is_featured} />
+            Kiemelt fogás
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:600;cursor:pointer">
+            <input type="checkbox" id="is_active" name="is_active" value="1" checked={!!item.is_active} />
+            Aktív
+          </label>
+        </div>
+      </div>
+
+      <div id="form-msg" class="alert" style="display:none"></div>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button type="submit" class="btn btn-primary">Mentés</button>
+        <a class="btn btn-outline" href="/admin/menu">Mégse</a>
+      </div>
+    </form>
+  </div>
+</AdminLayout>
+
+<script define:vars={{ itemId: id }}>
+  const catSel = document.getElementById('category') as HTMLSelectElement;
+  const customWrap = document.getElementById('custom-cat-wrap')!;
+  const customInput = document.getElementById('custom-category') as HTMLInputElement;
+
+  catSel.addEventListener('change', () => {
+    const custom = catSel.value === '__custom';
+    customWrap.style.display = custom ? 'block' : 'none';
+    customInput.required = custom;
+  });
+
+  const form = document.getElementById('menu-form') as HTMLFormElement;
+  const msg = document.getElementById('form-msg')!;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    btn.disabled = true; btn.textContent = 'Mentés...';
+
+    const fd = new FormData(form);
+    let category = fd.get('category') as string;
+    if (category === '__custom') category = (fd.get('custom_category') as string || '').trim();
+
+    const body = {
+      category,
+      subcategory: fd.get('subcategory') || '',
+      name: fd.get('name') as string,
+      description: fd.get('description') || '',
+      price_display: fd.get('price_display') || '',
+      price_min: fd.get('price_min') ? Number(fd.get('price_min')) : null,
+      allergens: fd.get('allergens') || '',
+      sort_order: Number(fd.get('sort_order') || 0),
+      is_featured: form.querySelector<HTMLInputElement>('#is_featured')?.checked ? 1 : 0,
+      is_active: form.querySelector<HTMLInputElement>('#is_active')?.checked ? 1 : 0,
+    };
+
+    const res = await fetch(`/api/admin/menu/${itemId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    btn.disabled = false; btn.textContent = 'Mentés';
+    msg.style.display = 'block';
+    if (res.ok) {
+      msg.className = 'alert alert-success';
+      msg.textContent = 'Sikeresen mentve!';
+    } else {
+      const d = await res.json() as any;
+      msg.className = 'alert alert-error';
+      msg.textContent = d.error || 'Hiba történt.';
+    }
+    setTimeout(() => { msg.style.display = 'none'; }, 3000);
+  });
+
+  document.getElementById('delete-btn')?.addEventListener('click', async () => {
+    if (!confirm('Biztosan törli ezt a tételt? Ez nem visszavonható!')) return;
+    const res = await fetch(`/api/admin/menu/${itemId}`, { method: 'DELETE' });
+    if (res.ok) { window.location.href = '/admin/menu'; }
+    else { alert('Hiba a törlés során.'); }
+  });
+</script>

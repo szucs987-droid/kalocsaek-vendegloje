@@ -1,0 +1,119 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+
+const db = Astro.locals.runtime?.env?.DB;
+let items: any[] = [];
+if (db) {
+  try {
+    const { results } = await db.prepare(
+      'SELECT * FROM menu_items ORDER BY category, sort_order, name'
+    ).all();
+    items = results as any[];
+  } catch {}
+}
+
+// Group by category
+const grouped: Record<string, any[]> = {};
+for (const item of items) {
+  if (!grouped[item.category]) grouped[item.category] = [];
+  grouped[item.category].push(item);
+}
+---
+<AdminLayout title="Étlap kezelés" activeNav="menu">
+  <div class="page-header">
+    <div>
+      <h1>Étlap kezelés</h1>
+      <p>{items.length} tétel összesen</p>
+    </div>
+    <a class="btn btn-primary" href="/admin/menu/new">+ Új tétel</a>
+  </div>
+
+  {items.length === 0 ? (
+    <div class="card" style="text-align:center;padding:40px;color:var(--muted)">
+      <p>Még nincs étlap tétel az adatbázisban.</p>
+      <p style="font-size:.85rem;margin-top:8px">A tételeket ide importálhatja, vagy az "Új tétel" gombbal egyenként adhatja hozzá.</p>
+      <a class="btn btn-primary" href="/admin/menu/new" style="margin-top:16px">+ Első tétel hozzáadása</a>
+    </div>
+  ) : (
+    Object.entries(grouped).map(([category, catItems]) => (
+      <details class="cat-section" open>
+        <summary class="cat-header">
+          <span class="cat-name">{category}</span>
+          <span class="cat-count">{catItems.length} tétel</span>
+        </summary>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Sorrend</th>
+                <th>Név</th>
+                <th>Leírás</th>
+                <th>Ár</th>
+                <th>Állapot</th>
+                <th>Kiemelt</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {catItems.map((item: any) => (
+                <tr>
+                  <td style="color:var(--muted);font-size:.8rem">{item.sort_order}</td>
+                  <td style="font-weight:600">{item.name}
+                    {item.subcategory && <span style="color:var(--muted);font-weight:400;font-size:.8rem"> / {item.subcategory}</span>}
+                  </td>
+                  <td style="color:var(--muted);font-size:.8rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                    {item.description || '—'}
+                  </td>
+                  <td style="font-family:Georgia,serif;color:var(--wine);white-space:nowrap">{item.price_display || '—'}</td>
+                  <td>
+                    <span class={`badge badge-${item.is_active ? 'active' : 'inactive'}`}>
+                      {item.is_active ? 'Aktív' : 'Rejtett'}
+                    </span>
+                  </td>
+                  <td>{item.is_featured ? '⭐' : ''}</td>
+                  <td style="white-space:nowrap">
+                    <a class="btn btn-sm btn-outline" href={`/admin/menu/${item.id}`}>Szerkesztés</a>
+                    <button class="btn btn-sm btn-danger" style="margin-left:4px" data-delete={item.id}>Törlés</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
+    ))
+  )}
+</AdminLayout>
+
+<style>
+  .cat-section {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .cat-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; cursor: pointer; font-weight: 700;
+    background: var(--cream2); font-family: Georgia, serif; color: var(--wine);
+    list-style: none;
+  }
+  .cat-header::-webkit-details-marker { display: none; }
+  .cat-header::before { content: '▶'; margin-right: 8px; font-size: .7rem; transition: transform .2s; }
+  details[open] .cat-header::before { transform: rotate(90deg); }
+  .cat-count { font-family: system-ui; font-weight: 400; font-size: .8rem; color: var(--muted); }
+</style>
+
+<script>
+  document.querySelectorAll('[data-delete]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = (btn as HTMLElement).dataset.delete;
+      if (!confirm('Biztosan törli ezt a tételt?')) return;
+      const res = await fetch(`/api/admin/menu/${id}`, { method: 'DELETE' });
+      if (res.ok) { (btn as HTMLElement).closest('tr')?.remove(); }
+      else { alert('Hiba a törlés során.'); }
+    });
+  });
+</script>

@@ -1,0 +1,220 @@
+---
+interface Props {
+  title?: string;
+  activeNav?: string;
+}
+const { title = 'Admin', activeNav = '' } = Astro.props;
+---
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{title} — Kalocsáék Admin</title>
+  <style>
+    :root {
+      --wine: #7a1c2b; --wine-deep: #591019; --gold: #c08a2e; --gold-light: #e3c074;
+      --cream: #f7efe1; --cream2: #fcf7ec; --paper: #fffdf8; --ink: #3a2a22;
+      --muted: #6e5d50; --line: #e7dcc8; --radius: 8px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background: var(--cream2); color: var(--ink); min-height: 100vh; display: flex; flex-direction: column; }
+    a { color: inherit; text-decoration: none; }
+
+    /* Top bar */
+    .admin-topbar {
+      background: var(--wine-deep);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 20px;
+      height: 52px;
+      flex-shrink: 0;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .admin-topbar .brand {
+      font-family: Georgia, serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gold-light);
+      margin-right: auto;
+    }
+    .admin-topbar .brand span { font-size: 10px; opacity: .7; display: block; font-family: system-ui; font-weight: 400; }
+    .topbar-link {
+      color: rgba(255,255,255,.75);
+      font-size: 13px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background .15s, color .15s;
+    }
+    .topbar-link:hover { background: rgba(255,255,255,.12); color: #fff; }
+    .topbar-link.active { background: rgba(255,255,255,.15); color: #fff; font-weight: 600; }
+
+    .layout { display: flex; flex: 1; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 210px;
+      flex-shrink: 0;
+      background: var(--paper);
+      border-right: 1px solid var(--line);
+      padding: 16px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .sidebar-group {
+      padding: 8px 14px 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .sidebar a {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 16px;
+      font-size: 13.5px;
+      color: var(--ink);
+      transition: background .12s, color .12s;
+      border-radius: 0;
+    }
+    .sidebar a:hover { background: var(--cream); color: var(--wine); }
+    .sidebar a.active { background: var(--cream); color: var(--wine); font-weight: 700; border-right: 3px solid var(--wine); }
+    .sidebar a .ic { font-size: 16px; width: 20px; text-align: center; }
+
+    /* Main */
+    .main-content {
+      flex: 1;
+      padding: 24px;
+      overflow-x: auto;
+      min-width: 0;
+    }
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .page-header h1 { font-family: Georgia, serif; font-size: 1.5rem; color: var(--wine); }
+    .page-header p { color: var(--muted); font-size: .875rem; margin-top: 3px; }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: .5rem 1.1rem; border-radius: 7px; font-size: .875rem;
+      font-weight: 600; cursor: pointer; border: 1.5px solid transparent;
+      transition: background .15s, color .15s; white-space: nowrap;
+    }
+    .btn-primary { background: var(--wine); color: #fff; }
+    .btn-primary:hover { background: var(--wine-deep); }
+    .btn-gold { background: var(--gold); color: #3a2708; }
+    .btn-gold:hover { background: var(--gold-light); }
+    .btn-outline { background: transparent; color: var(--wine); border-color: var(--wine); }
+    .btn-outline:hover { background: var(--wine); color: #fff; }
+    .btn-sm { padding: .3rem .7rem; font-size: .8rem; }
+    .btn-danger { background: #dc2626; color: #fff; }
+    .btn-danger:hover { background: #b91c1c; }
+
+    /* Cards */
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .card-title { font-family: Georgia, serif; color: var(--wine); font-size: 1rem; margin-bottom: 12px; }
+
+    /* Table */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+    thead th { background: var(--cream); text-align: left; padding: 10px 12px; font-weight: 700; color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid var(--line); }
+    tbody tr:hover { background: var(--cream2); }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+
+    /* Form elements */
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: .85rem; font-weight: 700; color: var(--ink); margin-bottom: 5px; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: .55rem .85rem; font-size: .95rem; color: var(--ink);
+      background: var(--paper); border: 1.5px solid var(--line); border-radius: var(--radius);
+      font-family: inherit; outline: none; transition: border-color .15s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--gold); }
+    .form-group textarea { resize: vertical; min-height: 90px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    /* Status badges */
+    .badge {
+      display: inline-block; padding: 3px 10px; border-radius: 20px;
+      font-size: .75rem; font-weight: 700;
+    }
+    .badge-new { background: #fef3c7; color: #92400e; }
+    .badge-read { background: #dbeafe; color: #1e40af; }
+    .badge-replied { background: #d1fae5; color: #065f46; }
+    .badge-closed { background: var(--cream); color: var(--muted); }
+    .badge-active { background: #d1fae5; color: #065f46; }
+    .badge-inactive { background: #fee2e2; color: #991b1b; }
+
+    /* Alert */
+    .alert { padding: 12px 16px; border-radius: 8px; font-size: .875rem; margin-bottom: 16px; }
+    .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+    /* Mobile */
+    @media (max-width: 767px) {
+      .sidebar { display: none; }
+      .main-content { padding: 16px; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="admin-topbar">
+    <div class="brand">
+      Kalocsáék Admin
+      <span>Vendéglő 1957 kezelőpanel</span>
+    </div>
+    <a href="/" class="topbar-link" target="_blank" rel="noopener">↗ Honlap</a>
+    <a href="/api/admin/auth?action=logout" class="topbar-link">Kijelentkezés</a>
+  </header>
+  <div class="layout">
+    <nav class="sidebar">
+      <div class="sidebar-group">Áttekintés</div>
+      <a href="/admin" class={activeNav === 'dashboard' ? 'active' : ''}>
+        <span class="ic">📊</span> Irányítópult
+      </a>
+
+      <div class="sidebar-group">Vendégek</div>
+      <a href="/admin/inquiries" class={activeNav === 'inquiries' ? 'active' : ''}>
+        <span class="ic">📨</span> Érdeklődések
+      </a>
+
+      <div class="sidebar-group">Tartalom</div>
+      <a href="/admin/menu" class={activeNav === 'menu' ? 'active' : ''}>
+        <span class="ic">🍽️</span> Étlap
+      </a>
+      <a href="/admin/schedule" class={activeNav === 'schedule' ? 'active' : ''}>
+        <span class="ic">🕐</span> Nyitvatartás / Ajánlatok
+      </a>
+      <a href="/admin/gallery" class={activeNav === 'gallery' ? 'active' : ''}>
+        <span class="ic">🖼️</span> Galéria
+      </a>
+
+      <div class="sidebar-group">Rendszer</div>
+      <a href="/api/admin/init-db" target="_blank" style="color:var(--muted);font-size:12px">
+        <span class="ic">🗄️</span> DB inicializálás
+      </a>
+    </nav>
+    <main class="main-content">
+      <slot />
+    </main>
+  </div>
+</body>
+</html>

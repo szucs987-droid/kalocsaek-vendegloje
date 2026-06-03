@@ -1,0 +1,105 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+
+const db = Astro.locals.runtime?.env?.DB;
+const filter = Astro.url.searchParams.get('status') || '';
+
+let inquiries: any[] = [];
+if (db) {
+  try {
+    let q = 'SELECT * FROM event_inquiries';
+    const params: string[] = [];
+    if (filter) { q += ' WHERE status = ?'; params.push(filter); }
+    q += ' ORDER BY received_at DESC';
+    const { results } = await db.prepare(q).bind(...params).all();
+    inquiries = results as any[];
+  } catch {}
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  new: 'Új', read: 'Olvasott', replied: 'Megválaszolva', closed: 'Lezárva'
+};
+const STATUS_OPTS = ['', 'new', 'read', 'replied', 'closed'];
+const STATUS_NAMES: Record<string, string> = { '': 'Összes', new: 'Új', read: 'Olvasott', replied: 'Megválaszolva', closed: 'Lezárva' };
+---
+<AdminLayout title="Érdeklődések" activeNav="inquiries">
+  <div class="page-header">
+    <div>
+      <h1>Rendezvény érdeklődések</h1>
+      <p>{inquiries.length} találat{filter ? ` (szűrő: ${STATUS_NAMES[filter]})` : ''}</p>
+    </div>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="filter-tabs">
+    {STATUS_OPTS.map(s => (
+      <a
+        href={s ? `/admin/inquiries?status=${s}` : '/admin/inquiries'}
+        class={filter === s ? 'active' : ''}
+      >
+        {STATUS_NAMES[s]}
+      </a>
+    ))}
+  </div>
+
+  {inquiries.length === 0 ? (
+    <div class="empty">Nincs találat.</div>
+  ) : (
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Státusz</th>
+              <th>Név</th>
+              <th>Telefon</th>
+              <th>Típus</th>
+              <th>Létszám</th>
+              <th>Érkezés</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {inquiries.map((inq: any) => (
+              <tr>
+                <td style="color:var(--muted);font-size:.8rem">{inq.id}</td>
+                <td>
+                  <span class={`badge badge-${inq.status}`}>
+                    {STATUS_LABELS[inq.status] || inq.status}
+                  </span>
+                </td>
+                <td style="font-weight:600">{inq.name}</td>
+                <td><a href={`tel:${inq.phone}`} style="color:var(--wine)">{inq.phone}</a></td>
+                <td>{inq.event_type}</td>
+                <td style="color:var(--muted)">{inq.headcount ? `${inq.headcount} fő` : '—'}</td>
+                <td style="color:var(--muted);font-size:.8rem;white-space:nowrap">
+                  {inq.received_at?.slice(0,16).replace('T',' ')}
+                </td>
+                <td>
+                  <a class="btn btn-sm btn-outline" href={`/admin/inquiries/${inq.id}`}>Részletek</a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )}
+</AdminLayout>
+
+<style>
+  .filter-tabs {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px;
+  }
+  .filter-tabs a {
+    padding: 6px 14px; border-radius: 20px; font-size: .8rem; font-weight: 600;
+    background: var(--paper); border: 1.5px solid var(--line); color: var(--ink);
+    text-decoration: none; transition: background .12s, border-color .12s;
+  }
+  .filter-tabs a:hover, .filter-tabs a.active {
+    background: var(--wine); border-color: var(--wine); color: #fff;
+  }
+  .empty { padding: 40px; text-align: center; color: var(--muted); }
+</style>

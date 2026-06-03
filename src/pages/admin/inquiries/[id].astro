@@ -1,0 +1,155 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+
+const db = Astro.locals.runtime?.env?.DB;
+const { id } = Astro.params;
+
+let inquiry: any = null;
+if (db) {
+  try {
+    inquiry = await db.prepare('SELECT * FROM event_inquiries WHERE id = ?').bind(id).first();
+  } catch {}
+}
+
+if (!inquiry) {
+  return new Response('Not found', { status: 404 });
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  new: 'Új', read: 'Olvasott', replied: 'Megválaszolva', closed: 'Lezárva'
+};
+
+// Auto-mark as read if still new
+if (db && inquiry.status === 'new') {
+  try {
+    await db.prepare(
+      "UPDATE event_inquiries SET status = 'read', updated_at = datetime('now') WHERE id = ?"
+    ).bind(id).run();
+    inquiry.status = 'read';
+  } catch {}
+}
+---
+<AdminLayout title={`Érdeklődés #${id}`} activeNav="inquiries">
+  <div class="page-header">
+    <div>
+      <h1>Érdeklődés #{id}</h1>
+      <p><a href="/admin/inquiries" style="color:var(--wine)">← Vissza a listához</a></p>
+    </div>
+    <span class={`badge badge-${inquiry.status}`} style="font-size:.9rem;padding:6px 14px">
+      {STATUS_LABELS[inquiry.status] || inquiry.status}
+    </span>
+  </div>
+
+  <div class="detail-grid">
+    <!-- Inquiry info -->
+    <div class="card">
+      <h2 class="card-title">Érdeklődő adatai</h2>
+      <dl class="info-list">
+        <div><dt>Név</dt><dd>{inquiry.name}</dd></div>
+        <div><dt>Telefon</dt><dd><a href={`tel:${inquiry.phone}`}>{inquiry.phone}</a></dd></div>
+        {inquiry.email && <div><dt>E-mail</dt><dd><a href={`mailto:${inquiry.email}`}>{inquiry.email}</a></dd></div>}
+        <div><dt>Rendezvény típusa</dt><dd>{inquiry.event_type}</dd></div>
+        {inquiry.headcount && <div><dt>Várható létszám</dt><dd>{inquiry.headcount} fő</dd></div>}
+        {inquiry.starts_at && <div><dt>Kezdete</dt><dd>{inquiry.starts_at?.replace('T', ' ')}</dd></div>}
+        {inquiry.ends_at && <div><dt>Vége</dt><dd>{inquiry.ends_at?.replace('T', ' ')}</dd></div>}
+        <div><dt>Beérkezett</dt><dd>{inquiry.received_at?.slice(0,16).replace('T',' ')}</dd></div>
+      </dl>
+      {inquiry.details && (
+        <div class="details-box">
+          <strong>Részletek:</strong>
+          <p>{inquiry.details}</p>
+        </div>
+      )}
+
+      <!-- Quick reply links -->
+      <div class="reply-actions">
+        <a class="btn btn-gold"
+           href={`tel:${inquiry.phone}`}>
+          📞 Hívás
+        </a>
+        {inquiry.email && (
+          <a class="btn btn-outline"
+             href={`mailto:${inquiry.email}?subject=Rendezvény ajánlatkérés — Kalocsáék Vendéglője`}>
+            ✉️ E-mail
+          </a>
+        )}
+      </div>
+    </div>
+
+    <!-- Admin panel -->
+    <div class="card">
+      <h2 class="card-title">Admin kezelés</h2>
+      <form id="admin-form">
+        <div class="form-group">
+          <label for="status-sel">Státusz</label>
+          <select id="status-sel" name="status">
+            <option value="new" selected={inquiry.status === 'new'}>Új</option>
+            <option value="read" selected={inquiry.status === 'read'}>Olvasott</option>
+            <option value="replied" selected={inquiry.status === 'replied'}>Megválaszolva</option>
+            <option value="closed" selected={inquiry.status === 'closed'}>Lezárva</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="notes">Admin megjegyzés</label>
+          <textarea id="notes" name="admin_notes" rows="5" placeholder="Belső megjegyzések (nem jelenik meg az érdeklődőnek)">{inquiry.admin_notes || ''}</textarea>
+        </div>
+        <div id="save-msg" class="alert" style="display:none"></div>
+        <button type="submit" class="btn btn-primary">Mentés</button>
+      </form>
+    </div>
+  </div>
+</AdminLayout>
+
+<style>
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 767px) { .detail-grid { grid-template-columns: 1fr; } }
+
+  .info-list { display: flex; flex-direction: column; gap: 8px; }
+  .info-list div { display: flex; gap: 8px; font-size: .9rem; }
+  .info-list dt { color: var(--muted); font-weight: 600; min-width: 130px; flex-shrink: 0; }
+  .info-list dd { color: var(--ink); }
+  .info-list a { color: var(--wine); }
+
+  .details-box {
+    margin-top: 16px; padding: 12px; background: var(--cream2);
+    border-radius: 8px; border: 1px solid var(--line);
+  }
+  .details-box strong { display: block; font-size: .8rem; color: var(--muted); margin-bottom: 4px; }
+  .details-box p { font-size: .9rem; white-space: pre-wrap; }
+
+  .reply-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+</style>
+
+<script define:vars={{ inquiryId: id }}>
+  const form = document.getElementById('admin-form');
+  const msg = document.getElementById('save-msg');
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const status = (document.getElementById('status-sel') as HTMLSelectElement).value;
+    const notes = (document.getElementById('notes') as HTMLTextAreaElement).value;
+    const btn = form.querySelector('button') as HTMLButtonElement;
+    btn.disabled = true; btn.textContent = 'Mentés...';
+
+    const res = await fetch(`/api/admin/inquiries/${inquiryId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status, admin_notes: notes }),
+    });
+
+    btn.disabled = false; btn.textContent = 'Mentés';
+    msg!.style.display = 'block';
+    if (res.ok) {
+      msg!.className = 'alert alert-success';
+      msg!.textContent = 'Sikeresen mentve!';
+    } else {
+      msg!.className = 'alert alert-error';
+      msg!.textContent = 'Hiba történt a mentés során.';
+    }
+    setTimeout(() => { msg!.style.display = 'none'; }, 3000);
+  });
+</script>

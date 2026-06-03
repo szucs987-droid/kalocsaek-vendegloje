@@ -1,0 +1,158 @@
+---
+export const prerender = false;
+import AdminLayout from '../../layouts/AdminLayout.astro';
+
+const db = Astro.locals.runtime?.env?.DB;
+
+let stats = { inquiries: 0, newInquiries: 0, menuItems: 0, galleryImages: 0 };
+let dbOk = false;
+
+if (db) {
+  try {
+    const [inqAll, inqNew, menu, gallery] = await Promise.all([
+      db.prepare('SELECT COUNT(*) as c FROM event_inquiries').first<{c:number}>(),
+      db.prepare("SELECT COUNT(*) as c FROM event_inquiries WHERE status = 'new'").first<{c:number}>(),
+      db.prepare('SELECT COUNT(*) as c FROM menu_items').first<{c:number}>(),
+      db.prepare('SELECT COUNT(*) as c FROM gallery_images').first<{c:number}>(),
+    ]);
+    stats = {
+      inquiries: inqAll?.c ?? 0,
+      newInquiries: inqNew?.c ?? 0,
+      menuItems: menu?.c ?? 0,
+      galleryImages: gallery?.c ?? 0,
+    };
+    dbOk = true;
+  } catch { /* DB not initialized yet */ }
+}
+
+const recentInquiries: any[] = [];
+if (db && dbOk) {
+  try {
+    const { results } = await db.prepare(
+      "SELECT id, name, event_type, status, received_at FROM event_inquiries ORDER BY received_at DESC LIMIT 5"
+    ).all();
+    recentInquiries.push(...results);
+  } catch {}
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  new: 'Új', read: 'Olvasott', replied: 'Megválaszolva', closed: 'Lezárva'
+};
+---
+<AdminLayout title="Irányítópult" activeNav="dashboard">
+  <div class="page-header">
+    <div>
+      <h1>Irányítópult</h1>
+      <p>Kalocsáék Vendéglője 1957 — kezelőpanel</p>
+    </div>
+    <a href="/" class="btn btn-outline" target="_blank">↗ Honlap megtekintése</a>
+  </div>
+
+  {!dbOk && (
+    <div class="alert alert-error">
+      <strong>Az adatbázis még nincs inicializálva.</strong>
+      Kattintson ide az inicializáláshoz:
+      <a href="/api/admin/init-db" target="_blank" style="font-weight:700;margin-left:6px">DB inicializálás →</a>
+      (majd töltse újra ezt az oldalt)
+    </div>
+  )}
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <a class="stat-card" href="/admin/inquiries">
+      <div class="stat-num">{stats.inquiries}</div>
+      <div class="stat-label">Összes érdeklődés</div>
+      {stats.newInquiries > 0 && <div class="stat-badge">{stats.newInquiries} új</div>}
+    </a>
+    <a class="stat-card" href="/admin/menu">
+      <div class="stat-num">{stats.menuItems}</div>
+      <div class="stat-label">Étlap tétel</div>
+    </a>
+    <a class="stat-card" href="/admin/gallery">
+      <div class="stat-num">{stats.galleryImages}</div>
+      <div class="stat-label">Galéria fotó</div>
+    </a>
+    <a class="stat-card" href="/admin/schedule">
+      <div class="stat-num">⏰</div>
+      <div class="stat-label">Nyitvatartás & Ajánlatok</div>
+    </a>
+  </div>
+
+  <!-- Recent inquiries -->
+  {recentInquiries.length > 0 && (
+    <div class="card" style="margin-top:24px">
+      <h2 class="card-title">Legutóbbi érdeklődések</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Név</th>
+              <th>Típus</th>
+              <th>Státusz</th>
+              <th>Érkezés</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {recentInquiries.map((inq: any) => (
+              <tr>
+                <td style="color:var(--muted);font-size:.8rem">{inq.id}</td>
+                <td style="font-weight:600">{inq.name}</td>
+                <td>{inq.event_type}</td>
+                <td>
+                  <span class={`badge badge-${inq.status}`}>
+                    {STATUS_LABELS[inq.status] || inq.status}
+                  </span>
+                </td>
+                <td style="color:var(--muted);font-size:.8rem">{inq.received_at?.slice(0,10)}</td>
+                <td><a class="btn btn-sm btn-outline" href={`/admin/inquiries/${inq.id}`}>Részletek</a></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:12px">
+        <a class="btn btn-outline" href="/admin/inquiries">Összes érdeklődés →</a>
+      </div>
+    </div>
+  )}
+
+  <!-- Quick actions -->
+  <div class="card" style="margin-top:16px">
+    <h2 class="card-title">Gyors műveletek</h2>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <a class="btn btn-primary" href="/admin/inquiries">📨 Érdeklődések</a>
+      <a class="btn btn-primary" href="/admin/menu/new">+ Étlap tétel</a>
+      <a class="btn btn-primary" href="/admin/schedule">🕐 Nyitvatartás</a>
+      <a class="btn btn-primary" href="/admin/gallery">🖼️ Galéria</a>
+    </div>
+  </div>
+</AdminLayout>
+
+<style>
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+  }
+  .stat-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px;
+    text-decoration: none;
+    color: var(--ink);
+    transition: box-shadow .15s, border-color .15s;
+    position: relative;
+  }
+  .stat-card:hover { box-shadow: 0 4px 16px rgba(122,28,43,.12); border-color: var(--wine); }
+  .stat-num { font-family: Georgia, serif; font-size: 2rem; color: var(--wine); font-weight: 700; }
+  .stat-label { font-size: .8rem; color: var(--muted); margin-top: 4px; font-weight: 600; }
+  .stat-badge {
+    position: absolute; top: 12px; right: 12px;
+    background: #dc2626; color: #fff;
+    font-size: .7rem; font-weight: 700;
+    padding: 2px 8px; border-radius: 20px;
+  }
+</style>

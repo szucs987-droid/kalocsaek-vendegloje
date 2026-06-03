@@ -1,0 +1,281 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+
+const db = Astro.locals.runtime?.env?.DB;
+
+let hours: any[] = [];
+let daily: any[] = [];
+let weekly: any[] = [];
+
+if (db) {
+  try {
+    const [h, d, w] = await Promise.all([
+      db.prepare('SELECT * FROM opening_hours ORDER BY weekday').all(),
+      db.prepare('SELECT * FROM daily_offers ORDER BY weekday').all(),
+      db.prepare('SELECT * FROM weekly_specials ORDER BY valid_from DESC LIMIT 10').all(),
+    ]);
+    hours = h.results as any[];
+    daily = d.results as any[];
+    weekly = w.results as any[];
+  } catch {}
+}
+
+const DAY_NAMES = ['Vasárnap', 'Hétfő', 'Kedd', 'Szerda', 'Csütörtök', 'Péntek', 'Szombat'];
+---
+<AdminLayout title="Nyitvatartás & Ajánlatok" activeNav="schedule">
+  <div class="page-header">
+    <div>
+      <h1>Nyitvatartás & Ajánlatok</h1>
+      <p>Nyitvatartási idők, napi és heti ajánlatok kezelése</p>
+    </div>
+  </div>
+
+  <!-- Opening Hours -->
+  <div class="card">
+    <h2 class="card-title">🕐 Nyitvatartás</h2>
+    <div id="hours-msg" class="alert" style="display:none"></div>
+    <form id="hours-form">
+      <div class="hours-grid">
+        {[1,2,3,4,5,6,0].map(day => {
+          const h = hours.find((r: any) => r.weekday === day) || { weekday: day, opens: '11:00', closes: '21:00', is_closed: 0 };
+          return (
+            <div class="hours-row" data-day={day}>
+              <span class="day-name">{DAY_NAMES[day]}</span>
+              <input class="time-input" type="time" name={`opens_${day}`} value={h.opens} disabled={!!h.is_closed} />
+              <span>–</span>
+              <input class="time-input" type="time" name={`closes_${day}`} value={h.closes} disabled={!!h.is_closed} />
+              <label class="closed-label">
+                <input type="checkbox" name={`closed_${day}`} value="1" checked={!!h.is_closed}
+                  onchange="this.closest('.hours-row').querySelectorAll('.time-input').forEach(i=>i.disabled=this.checked)" />
+                Zárva
+              </label>
+            </div>
+          );
+        })}
+      </div>
+      <button type="submit" class="btn btn-primary" style="margin-top:16px">Nyitvatartás mentése</button>
+    </form>
+  </div>
+
+  <!-- Daily Offers -->
+  <div class="card">
+    <h2 class="card-title">🍽️ Napi menü árak</h2>
+    <p style="color:var(--muted);font-size:.85rem;margin-bottom:16px">A tényleges napi ételt a Facebook-on, ill. a Heti ajánlat szekcióban érdemes közzétenni.</p>
+    <div id="daily-msg" class="alert" style="display:none"></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nap</th>
+            <th>Leves neve</th>
+            <th>Főétel neve</th>
+            <th>Leves + főétel (Ft)</th>
+            <th>Csak főétel (Ft)</th>
+            <th>Aktív</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {[1,2,3,4,5,6,0].map(day => {
+            const d = daily.find((r: any) => r.weekday === day) || { weekday: day, soup_name: '', main_name: '', price_full: 1990, price_main_only: 1590, is_active: 1 };
+            return (
+              <tr data-daily-day={day}>
+                <td style="font-weight:700;color:var(--wine)">{DAY_NAMES[day]}</td>
+                <td><input class="td-input" type="text" data-field="soup_name" value={d.soup_name || ''} placeholder="Leves neve" /></td>
+                <td><input class="td-input" type="text" data-field="main_name" value={d.main_name || ''} placeholder="Főétel neve" /></td>
+                <td><input class="td-input td-price" type="number" data-field="price_full" value={d.price_full ?? 1990} min="0" /></td>
+                <td><input class="td-input td-price" type="number" data-field="price_main_only" value={d.price_main_only ?? 1590} min="0" /></td>
+                <td><input type="checkbox" data-field="is_active" checked={!!d.is_active} /></td>
+                <td><button class="btn btn-sm btn-outline daily-save-btn">Ment</button></td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Weekly Specials -->
+  <div class="card">
+    <h2 class="card-title">🌟 Heti ajánlatok</h2>
+    <div id="weekly-msg" class="alert" style="display:none"></div>
+
+    <!-- Add form -->
+    <form id="weekly-form" class="weekly-add">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="w-title">Cím *</label>
+          <input type="text" id="w-title" name="title" required placeholder="pl. Tavaszi heti menü" />
+        </div>
+        <div class="form-group">
+          <label for="w-from">Érvényes ettől</label>
+          <input type="date" id="w-from" name="valid_from" required />
+        </div>
+        <div class="form-group">
+          <label for="w-to">Érvényes eddig</label>
+          <input type="date" id="w-to" name="valid_to" required />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="w-desc">Leírás *</label>
+        <textarea id="w-desc" name="description" rows="3" required placeholder="Az ajánlat részletei (fogások, árak, megjegyzés)"></textarea>
+      </div>
+      <button type="submit" class="btn btn-gold">+ Ajánlat hozzáadása</button>
+    </form>
+
+    <!-- List -->
+    {weekly.length > 0 && (
+      <div class="table-wrap" style="margin-top:16px">
+        <table>
+          <thead>
+            <tr><th>Cím</th><th>Érvényes</th><th>Állapot</th><th></th></tr>
+          </thead>
+          <tbody id="weekly-tbody">
+            {weekly.map((w: any) => (
+              <tr data-wid={w.id}>
+                <td style="font-weight:600">{w.title}</td>
+                <td style="font-size:.85rem;color:var(--muted)">{w.valid_from} – {w.valid_to}</td>
+                <td>
+                  <span class={`badge badge-${w.is_active ? 'active' : 'inactive'}`}>
+                    {w.is_active ? 'Aktív' : 'Inaktív'}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-danger w-delete" data-id={w.id}>Törlés</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </div>
+</AdminLayout>
+
+<style>
+  .hours-grid { display: flex; flex-direction: column; gap: 8px; }
+  .hours-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; background: var(--cream2);
+    border-radius: 8px; border: 1px solid var(--line);
+  }
+  .day-name { min-width: 90px; font-weight: 700; font-size: .9rem; }
+  .time-input {
+    padding: 5px 8px; border: 1.5px solid var(--line); border-radius: 6px;
+    font-size: .9rem; color: var(--ink); background: var(--paper);
+    outline: none; width: 100px;
+  }
+  .time-input:disabled { opacity: .4; }
+  .closed-label { display: flex; align-items: center; gap: 5px; font-size: .85rem; font-weight: 600; cursor: pointer; margin-left: auto; }
+
+  .td-input { width: 100%; border: 1px solid var(--line); border-radius: 5px; padding: 4px 7px; font-size: .85rem; background: var(--paper); }
+  .td-price { width: 80px; }
+
+  .weekly-add { background: var(--cream2); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 8px; }
+</style>
+
+<script>
+  // ===== Opening Hours =====
+  const hoursForm = document.getElementById('hours-form') as HTMLFormElement;
+  const hoursMsg = document.getElementById('hours-msg')!;
+
+  hoursForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = hoursForm.querySelector('button') as HTMLButtonElement;
+    btn.disabled = true; btn.textContent = 'Mentés...';
+
+    const days = [1,2,3,4,5,6,0];
+    const results = await Promise.all(days.map(async day => {
+      const fd = new FormData(hoursForm);
+      const is_closed = fd.get(`closed_${day}`) === '1' ? 1 : 0;
+      return fetch('/api/admin/schedule/hours', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          weekday: day,
+          opens: fd.get(`opens_${day}`) || '11:00',
+          closes: fd.get(`closes_${day}`) || '21:00',
+          is_closed,
+        }),
+      });
+    }));
+
+    btn.disabled = false; btn.textContent = 'Nyitvatartás mentése';
+    const ok = results.every(r => r.ok);
+    hoursMsg.style.display = 'block';
+    hoursMsg.className = ok ? 'alert alert-success' : 'alert alert-error';
+    hoursMsg.textContent = ok ? 'Nyitvatartás sikeresen mentve!' : 'Hiba a mentés során.';
+    setTimeout(() => { hoursMsg.style.display = 'none'; }, 3000);
+  });
+
+  // ===== Daily Offers =====
+  const dailyMsg = document.getElementById('daily-msg')!;
+
+  document.querySelectorAll<HTMLButtonElement>('.daily-save-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const row = btn.closest('tr')!;
+      const day = Number(row.dataset.dailyDay);
+      const soup = (row.querySelector('[data-field="soup_name"]') as HTMLInputElement).value;
+      const main = (row.querySelector('[data-field="main_name"]') as HTMLInputElement).value;
+      const pf = Number((row.querySelector('[data-field="price_full"]') as HTMLInputElement).value);
+      const pm = Number((row.querySelector('[data-field="price_main_only"]') as HTMLInputElement).value);
+      const active = (row.querySelector('[data-field="is_active"]') as HTMLInputElement).checked ? 1 : 0;
+
+      btn.disabled = true; btn.textContent = '...';
+      const res = await fetch('/api/admin/schedule/daily', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ weekday: day, soup_name: soup, main_name: main, price_full: pf, price_main_only: pm, is_active: active }),
+      });
+      btn.disabled = false; btn.textContent = 'Ment';
+      dailyMsg.style.display = 'block';
+      dailyMsg.className = res.ok ? 'alert alert-success' : 'alert alert-error';
+      dailyMsg.textContent = res.ok ? `${['Vasárnap','Hétfő','Kedd','Szerda','Csütörtök','Péntek','Szombat'][day]} mentve!` : 'Hiba.';
+      setTimeout(() => { dailyMsg.style.display = 'none'; }, 2000);
+    });
+  });
+
+  // ===== Weekly Specials =====
+  const weeklyForm = document.getElementById('weekly-form') as HTMLFormElement;
+  const weeklyMsg = document.getElementById('weekly-msg')!;
+  const weeklyTbody = document.getElementById('weekly-tbody');
+
+  weeklyForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = weeklyForm.querySelector('button') as HTMLButtonElement;
+    btn.disabled = true; btn.textContent = 'Mentés...';
+    const fd = new FormData(weeklyForm);
+
+    const res = await fetch('/api/admin/schedule/weekly', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: fd.get('title'), description: fd.get('description'),
+        valid_from: fd.get('valid_from'), valid_to: fd.get('valid_to'), is_active: 1,
+      }),
+    });
+
+    btn.disabled = false; btn.textContent = '+ Ajánlat hozzáadása';
+    weeklyMsg.style.display = 'block';
+    if (res.ok) {
+      weeklyMsg.className = 'alert alert-success';
+      weeklyMsg.textContent = 'Ajánlat sikeresen hozzáadva! Oldal frissítése...';
+      setTimeout(() => location.reload(), 1000);
+    } else {
+      weeklyMsg.className = 'alert alert-error';
+      weeklyMsg.textContent = 'Hiba a mentés során.';
+    }
+    setTimeout(() => { weeklyMsg.style.display = 'none'; }, 3000);
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.w-delete').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Biztosan törli ezt az ajánlatot?')) return;
+      const id = btn.dataset.id;
+      const res = await fetch(`/api/admin/schedule/weekly/${id}`, { method: 'DELETE' });
+      if (res.ok) { btn.closest('tr')?.remove(); }
+      else { alert('Hiba a törlés során.'); }
+    });
+  });
+</script>

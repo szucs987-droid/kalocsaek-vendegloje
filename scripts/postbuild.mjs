@@ -1,29 +1,40 @@
+/**
+ * postbuild.mjs — Cloudflare Pages Advanced Mode cleanup
+ *
+ * The @astrojs/cloudflare adapter (v13+) generates several wrangler config
+ * files in dist/server/ and .wrangler/deploy/ that conflict with the Pages
+ * manual-mode deployment via _worker.js.
+ *
+ * This script:
+ * 1. Deletes the adapter-generated wrangler files (so Pages uses our root
+ *    wrangler.toml instead).
+ * 2. Creates dist/_worker.js — the Cloudflare Pages _worker.js entry point
+ *    that exports the Astro SSR handler.
+ * 3. Writes dist/.assetsignore so Pages does not serve server code as static
+ *    files.
+ */
+
 import { writeFileSync, rmSync, existsSync } from 'fs';
 
-// 1. Delete the adapter-generated wrangler redirect files.
-//    The adapter writes dist/server/wrangler.json AND .wrangler/deploy/config.json.
-//    config.json is a pointer to wrangler.json. Pages reads the pointer first;
-//    if wrangler.json is gone but config.json still exists, Pages errors.
-//    Delete both so Pages falls back to the root wrangler.toml.
-const adapterWrangler = 'dist/server/wrangler.json';
-if (existsSync(adapterWrangler)) {
-  rmSync(adapterWrangler);
-  console.log('postbuild: deleted dist/server/wrangler.json');
-}
-const deployConfig = '.wrangler/deploy/config.json';
-if (existsSync(deployConfig)) {
-  rmSync(deployConfig);
-  console.log('postbuild: deleted .wrangler/deploy/config.json');
+// 1. Delete adapter-generated wrangler configs
+const toDelete = [
+  'dist/server/wrangler.json',
+  '.wrangler/deploy/config.json',
+];
+for (const f of toDelete) {
+  if (existsSync(f)) {
+    rmSync(f);
+    console.log(`postbuild: deleted ${f}`);
+  }
 }
 
-// 2. Create dist/_worker.js — the Cloudflare Pages Advanced Mode Worker shim.
-//    Pages picks up _worker.js from pages_build_output_dir (./dist) and deploys
-//    it as the Worker. Both this file and dist/server/ are inside dist/ so all
-//    relative imports resolve correctly.
-writeFileSync('dist/_worker.js', "export { default } from './server/entry.mjs';\n");
+// 2. Create dist/_worker.js — Cloudflare Pages picks this up automatically.
+writeFileSync(
+  'dist/_worker.js',
+  "export { default } from './server/entry.mjs';\n"
+);
 console.log('postbuild: created dist/_worker.js');
 
-// 3. Write dist/.assetsignore so Pages does not try to serve the server code or
-//    the wrangler config as static files.
+// 3. Write dist/.assetsignore — prevents Pages from serving server/ as static.
 writeFileSync('dist/.assetsignore', 'server\nwrangler.json\n.dev.vars\n');
 console.log('postbuild: wrote dist/.assetsignore');

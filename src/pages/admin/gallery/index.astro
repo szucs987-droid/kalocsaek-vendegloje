@@ -1,0 +1,260 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+
+const db = Astro.locals.runtime?.env?.DB;
+const env = Astro.locals.runtime?.env;
+
+let images: any[] = [];
+if (db) {
+  try {
+    const { results } = await db.prepare(
+      'SELECT * FROM gallery_images ORDER BY sort_order, uploaded_at DESC'
+    ).all();
+    images = results as any[];
+  } catch {}
+}
+
+const cloudName = env?.CLOUDINARY_CLOUD_NAME || '';
+const uploadPreset = env?.CLOUDINARY_UPLOAD_PRESET || '';
+const hasCloudinary = !!(cloudName && uploadPreset);
+---
+<AdminLayout title="Galéria kezelés" activeNav="gallery">
+  <div class="page-header">
+    <div>
+      <h1>Galéria kezelés</h1>
+      <p>{images.length} fotó az adatbázisban</p>
+    </div>
+  </div>
+
+  {!hasCloudinary && (
+    <div class="alert alert-error">
+      <strong>Cloudinary nincs beállítva.</strong> A képfeltöltéshez add meg a
+      <code>CLOUDINARY_CLOUD_NAME</code> és <code>CLOUDINARY_UPLOAD_PRESET</code>
+      értékeket a Cloudflare Pages környezeti változói között.
+    </div>
+  )}
+
+  {hasCloudinary && (
+    <div class="card">
+      <h2 class="card-title">📤 Új kép feltöltése</h2>
+      <div class="upload-area" id="upload-area">
+        <input type="file" id="file-input" accept="image/*" multiple style="display:none" />
+        <label for="file-input" class="upload-label">
+          <span>📁 Kattintson vagy húzzon ide képfájlt</span>
+          <small>Támogatott: JPG, PNG, WEBP (max 10 MB)</small>
+        </label>
+        <div id="upload-progress" style="display:none">
+          <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+          <span id="progress-text">Feltöltés...</span>
+        </div>
+      </div>
+      <div id="upload-msg" class="alert" style="display:none;margin-top:10px"></div>
+    </div>
+  )}
+
+  <!-- Gallery grid -->
+  <div class="gallery-grid" id="gallery-grid">
+    {images.map((img: any) => (
+      <div class="gallery-item" data-id={img.id}>
+        <div class="gallery-thumb">
+          <img src={img.cloudinary_url} alt={img.alt_text} loading="lazy" />
+          <div class="gallery-overlay">
+            <span class={`badge ${img.is_active ? 'badge-active' : 'badge-inactive'}`}>
+              {img.is_active ? 'Látható' : 'Rejtett'}
+            </span>
+          </div>
+        </div>
+        <div class="gallery-meta">
+          <input class="alt-input" type="text" value={img.alt_text} placeholder="Alt szöveg" data-id={img.id} />
+          <div class="gallery-actions">
+            <input class="sort-input" type="number" value={img.sort_order} min="0" placeholder="Sorrend" data-id={img.id} style="width:70px" />
+            <label style="display:flex;align-items:center;gap:4px;font-size:.8rem;cursor:pointer">
+              <input type="checkbox" class="active-toggle" checked={!!img.is_active} data-id={img.id} />
+              Látható
+            </label>
+            <button class="btn btn-sm btn-outline save-img-btn" data-id={img.id}>Ment</button>
+            <button class="btn btn-sm btn-danger del-img-btn" data-id={img.id}>Töröl</button>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+  {images.length === 0 && (
+    <div class="empty-gallery">Még nincs kép a galériában. Töltsön fel egyet felül!</div>
+  )}
+</AdminLayout>
+
+<style>
+  .upload-area {
+    border: 2px dashed var(--line); border-radius: 10px; padding: 30px;
+    text-align: center; background: var(--cream2); transition: border-color .15s;
+  }
+  .upload-area:hover { border-color: var(--gold); }
+  .upload-label { display: flex; flex-direction: column; gap: 4px; cursor: pointer; color: var(--muted); }
+  .upload-label span { font-size: 1rem; font-weight: 600; color: var(--wine); }
+  .upload-label small { font-size: .8rem; }
+  .progress-bar { width: 100%; height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; margin: 10px 0 4px; }
+  .progress-fill { height: 100%; background: var(--gold); border-radius: 4px; transition: width .2s; }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .gallery-item { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .gallery-thumb { position: relative; aspect-ratio: 4/3; overflow: hidden; background: var(--cream); }
+  .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .gallery-overlay { position: absolute; top: 6px; left: 6px; }
+  .gallery-meta { padding: 10px; }
+  .alt-input { width: 100%; border: 1px solid var(--line); border-radius: 5px; padding: 4px 7px; font-size: .8rem; margin-bottom: 6px; }
+  .gallery-actions { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+  .sort-input { border: 1px solid var(--line); border-radius: 5px; padding: 4px 6px; font-size: .8rem; }
+  .empty-gallery { text-align: center; padding: 40px; color: var(--muted); }
+</style>
+
+<script define:vars={{ cloudName, uploadPreset }}>
+  // ===== Upload =====
+  const fileInput = document.getElementById('file-input') as HTMLInputElement;
+  const progress = document.getElementById('upload-progress')!;
+  const progressFill = document.getElementById('progress-fill')!;
+  const progressText = document.getElementById('progress-text')!;
+  const uploadMsg = document.getElementById('upload-msg')!;
+  const grid = document.getElementById('gallery-grid')!;
+
+  fileInput?.addEventListener('change', () => {
+    const files = Array.from(fileInput.files || []);
+    files.forEach(uploadFile);
+    fileInput.value = '';
+  });
+
+  async function uploadFile(file: File) {
+    if (!cloudName || !uploadPreset) return;
+    progress.style.display = 'block';
+    progressFill.style.width = '0%';
+    progressText.textContent = `Feltöltés: ${file.name}`;
+
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', uploadPreset);
+
+    try {
+      const xhr = new XMLHttpRequest();
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          progressFill.style.width = `${(e.loaded / e.total * 100).toFixed(0)}%`;
+        }
+      });
+
+      const cloudRes = await new Promise<any>((resolve, reject) => {
+        xhr.onload = () => resolve(JSON.parse(xhr.responseText));
+        xhr.onerror = reject;
+        xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`);
+        xhr.send(fd);
+      });
+
+      if (cloudRes.error) throw new Error(cloudRes.error.message);
+
+      // Save to DB
+      const saveRes = await fetch('/api/admin/gallery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cloudinary_id: cloudRes.public_id,
+          cloudinary_url: cloudRes.secure_url,
+          alt_text: file.name.replace(/\.[^.]+$/, ''),
+          sort_order: 0, is_active: 1,
+        }),
+      });
+
+      if (!saveRes.ok) throw new Error('DB mentés sikertelen');
+      const saved = await saveRes.json() as any;
+
+      // Prepend to grid
+      const item = makeGalleryCard(saved.id, cloudRes.secure_url, file.name.replace(/\.[^.]+$/, ''), 0, 1);
+      grid.prepend(item);
+
+      progress.style.display = 'none';
+      uploadMsg.style.display = 'block';
+      uploadMsg.className = 'alert alert-success';
+      uploadMsg.textContent = `${file.name} sikeresen feltöltve!`;
+      setTimeout(() => { uploadMsg.style.display = 'none'; }, 3000);
+    } catch (err: any) {
+      progress.style.display = 'none';
+      uploadMsg.style.display = 'block';
+      uploadMsg.className = 'alert alert-error';
+      uploadMsg.textContent = `Hiba: ${err.message}`;
+    }
+  }
+
+  function makeGalleryCard(id: number, url: string, alt: string, sortOrder: number, isActive: number) {
+    const div = document.createElement('div');
+    div.className = 'gallery-item';
+    div.dataset.id = String(id);
+    div.innerHTML = `
+      <div class="gallery-thumb">
+        <img src="${url}" alt="${alt}" loading="lazy" />
+        <div class="gallery-overlay">
+          <span class="badge badge-active">Látható</span>
+        </div>
+      </div>
+      <div class="gallery-meta">
+        <input class="alt-input" type="text" value="${alt}" placeholder="Alt szöveg" data-id="${id}" />
+        <div class="gallery-actions">
+          <input class="sort-input" type="number" value="${sortOrder}" min="0" placeholder="Sorrend" data-id="${id}" style="width:70px" />
+          <label style="display:flex;align-items:center;gap:4px;font-size:.8rem;cursor:pointer">
+            <input type="checkbox" class="active-toggle" ${isActive ? 'checked' : ''} data-id="${id}" /> Látható
+          </label>
+          <button class="btn btn-sm btn-outline save-img-btn" data-id="${id}">Ment</button>
+          <button class="btn btn-sm btn-danger del-img-btn" data-id="${id}">Töröl</button>
+        </div>
+      </div>
+    `;
+    attachHandlers(div);
+    return div;
+  }
+
+  function attachHandlers(container: Element) {
+    container.querySelectorAll<HTMLButtonElement>('.save-img-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        const parent = btn.closest('.gallery-item')!;
+        const alt = (parent.querySelector('.alt-input') as HTMLInputElement).value;
+        const sort = Number((parent.querySelector('.sort-input') as HTMLInputElement).value);
+        const active = (parent.querySelector('.active-toggle') as HTMLInputElement).checked ? 1 : 0;
+
+        const res = await fetch(`/api/admin/gallery/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ alt_text: alt, sort_order: sort, is_active: active }),
+        });
+        btn.textContent = res.ok ? '✓' : '✗';
+        setTimeout(() => { btn.textContent = 'Ment'; }, 1500);
+      });
+    });
+
+    container.querySelectorAll<HTMLButtonElement>('.del-img-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Biztosan törli ezt a képet az adatbázisból?')) return;
+        const id = btn.dataset.id;
+        const res = await fetch(`/api/admin/gallery/${id}`, { method: 'DELETE' });
+        if (res.ok) { btn.closest('.gallery-item')?.remove(); }
+        else { alert('Hiba a törlés során.'); }
+      });
+    });
+  }
+
+  // Attach handlers to existing items
+  document.querySelectorAll('.gallery-item').forEach(attachHandlers);
+
+  // Drag & drop
+  const uploadArea = document.getElementById('upload-area')!;
+  uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.style.borderColor = 'var(--gold)'; });
+  uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor = ''; });
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.style.borderColor = '';
+    Array.from(e.dataTransfer?.files || []).filter(f => f.type.startsWith('image/')).forEach(uploadFile);
+  });
+</script>
