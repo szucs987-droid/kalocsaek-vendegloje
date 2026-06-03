@@ -1,8 +1,9 @@
 ---
 export const prerender = false;
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import { cfEnv } from '../../lib/env';
 
-const db = Astro.locals.runtime?.env?.DB;
+const db = cfEnv.DB;
 
 let stats = { inquiries: 0, newInquiries: 0, menuItems: 0, galleryImages: 0 };
 let dbOk = false;

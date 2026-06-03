@@ -3,6 +3,7 @@
 export const prerender = false;
 
 import type { APIContext } from 'astro';
+import { cfEnv } from '../../../lib/env';
 
 export async function GET({ url, cookies, redirect }: APIContext) {
   const action = url.searchParams.get('action');
@@ -13,9 +14,8 @@ export async function GET({ url, cookies, redirect }: APIContext) {
   return new Response('Method not allowed', { status: 405 });
 }
 
-export async function POST({ request, cookies, locals, redirect }: APIContext) {
-  const env = locals.runtime?.env;
-  const secret = env?.ADMIN_SECRET;
+export async function POST({ request, cookies }: APIContext) {
+  const secret = cfEnv.ADMIN_SECRET;
 
   if (!secret) {
     return new Response(JSON.stringify({ error: 'Server not configured (ADMIN_SECRET missing).' }), {

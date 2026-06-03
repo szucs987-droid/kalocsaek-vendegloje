@@ -4,6 +4,7 @@
 export const prerender = false;
 
 import type { APIContext } from 'astro';
+import { cfEnv } from '../../../lib/env';
 
 const SQL = `
 CREATE TABLE IF NOT EXISTS menu_items (
@@ -102,8 +103,8 @@ CREATE TABLE IF NOT EXISTS closed_day_overrides (
 );
 `;
 
-export async function GET({ locals }: APIContext) {
-  const db = locals.runtime?.env?.DB;
+export async function GET(_ctx: APIContext) {
+  const db = cfEnv.DB;
   if (!db) {
     return new Response(JSON.stringify({ error: 'DB binding not found' }), {
       status: 500,

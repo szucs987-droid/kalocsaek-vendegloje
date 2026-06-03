@@ -2,9 +2,10 @@
 export const prerender = false;
 
 import type { APIContext } from 'astro';
+import { cfEnv } from '../../lib/env';
 
-export async function POST({ request, locals }: APIContext) {
-  const db = locals.runtime?.env?.DB;
+export async function POST({ request }: APIContext) {
+  const db = cfEnv.DB;
 
   let body: Record<string, any> = {};
   try {

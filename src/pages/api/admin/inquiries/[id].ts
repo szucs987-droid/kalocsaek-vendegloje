@@ -3,9 +3,10 @@
 export const prerender = false;
 
 import type { APIContext } from 'astro';
+import { cfEnv } from '../../../../lib/env';
 
 export async function GET({ params, locals }: APIContext) {
-  const db = locals.runtime?.env?.DB;
+  const db = cfEnv.DB;
   if (!db) return json({ error: 'DB not available' }, 500);
 
   try {
@@ -19,7 +20,7 @@ export async function GET({ params, locals }: APIContext) {
 }
 
 export async function PATCH({ params, request, locals }: APIContext) {
-  const db = locals.runtime?.env?.DB;
+  const db = cfEnv.DB;
   if (!db) return json({ error: 'DB not available' }, 500);
 
   let body: Record<string, any> = {};

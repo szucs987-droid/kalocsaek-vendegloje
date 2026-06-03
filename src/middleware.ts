@@ -1,4 +1,5 @@
 import { defineMiddleware } from 'astro:middleware';
+import { cfEnv } from './lib/env';
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;
@@ -9,9 +10,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
     pathname.startsWith('/api/admin');
 
   if (needsAuth) {
-    const env = context.locals.runtime?.env;
     const cookie = context.cookies.get('admin_session');
-    const valid = env?.ADMIN_SECRET && cookie?.value === env.ADMIN_SECRET;
+    const valid = cfEnv.ADMIN_SECRET && cookie?.value === cfEnv.ADMIN_SECRET;
 
     if (!valid) {
       // API endpoints → 401 JSON

@@ -1,10 +1,10 @@
 ---
 export const prerender = false;
+import { cfEnv } from '../../lib/env';
 
 // If already logged in, redirect to dashboard
-const env = Astro.locals.runtime?.env;
 const cookie = Astro.cookies.get('admin_session');
-if (env?.ADMIN_SECRET && cookie?.value === env.ADMIN_SECRET) {
+if (cfEnv.ADMIN_SECRET && cookie?.value === cfEnv.ADMIN_SECRET) {
   return Astro.redirect('/admin');
 }
 

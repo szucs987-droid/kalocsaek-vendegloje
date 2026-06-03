@@ -1,9 +1,9 @@
 ---
 export const prerender = false;
 import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { cfEnv } from '../../../lib/env';
 
-const db = Astro.locals.runtime?.env?.DB;
-const env = Astro.locals.runtime?.env;
+const db = cfEnv.DB;
 
 let images: any[] = [];
 if (db) {
@@ -15,8 +15,8 @@ if (db) {
   } catch {}
 }
 
-const cloudName = env?.CLOUDINARY_CLOUD_NAME || '';
-const uploadPreset = env?.CLOUDINARY_UPLOAD_PRESET || '';
+const cloudName = cfEnv.CLOUDINARY_CLOUD_NAME || '';
+const uploadPreset = cfEnv.CLOUDINARY_UPLOAD_PRESET || '';
 const hasCloudinary = !!(cloudName && uploadPreset);
 ---
 <AdminLayout title="Galéria kezelés" activeNav="gallery">
