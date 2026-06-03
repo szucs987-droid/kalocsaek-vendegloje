@@ -5,9 +5,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;
 
   // Protect all /admin/* routes (except /admin/login) and /api/admin/* endpoints
+  // /api/admin/auth is the login endpoint itself — it must remain public
   const needsAuth =
     (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) ||
-    pathname.startsWith('/api/admin');
+    (pathname.startsWith('/api/admin') && pathname !== '/api/admin/auth');
 
   if (needsAuth) {
     const cookie = context.cookies.get('admin_session');
