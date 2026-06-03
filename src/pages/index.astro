@@ -51,17 +51,20 @@ import Layout from '../layouts/Layout.astro';
   <!-- ===== QUICK ACTIONS ===== -->
   <div class="quick">
     <a href="tel:+36707720291">
-      <span class="ic" aria-hidden="true">📞</span>Hívás<small>+36 70 772 0291</small>
+      <img class="ic" src="/icons/ikon_telefon.png" alt="" width="44" height="44" />
+      Hívás<small>+36 70 772 0291</small>
     </a>
     <a href="https://maps.google.com/?q=2700+Cegléd,+Kőrösi+út+36" target="_blank" rel="noopener">
-      <span class="ic" aria-hidden="true">📍</span>Útvonal<small>Kőrösi út 36, Cegléd</small>
+      <img class="ic" src="/icons/ikon_utvonal.png" alt="" width="44" height="44" />
+      Útvonal<small>Kőrösi út 36, Cegléd</small>
     </a>
     <a href="#etlap">
-      <span class="ic" aria-hidden="true">🍽️</span>Étlap<small>2026 étlap</small>
+      <img class="ic" src="/icons/ikon_etlap.png" alt="" width="44" height="44" />
+      Étlap<small>2026 étlap</small>
     </a>
     <a href="#kapcsolat">
-      <span class="ic" aria-hidden="true">🕒</span>Nyitvatartás
-      <small id="status-quick"></small>
+      <img class="ic" src="/icons/ikon_nyitvatartas.png" alt="" width="44" height="44" />
+      Nyitvatartás<small id="status-quick"></small>
     </a>
   </div>
 
@@ -724,23 +727,23 @@ import Layout from '../layouts/Layout.astro';
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1px;
-    background: var(--line);
+    background: var(--wine-deep);
   }
   .quick a {
-    background: var(--paper);
+    background: var(--wine);
     text-decoration: none;
-    color: var(--wine);
+    color: #fff;
     text-align: center;
     padding: 16px 8px;
     font-weight: 700;
     font-size: 13px;
     transition: background .15s;
   }
-  .quick a:hover { background: var(--cream); }
-  .quick .ic { display: block; font-size: 22px; margin-bottom: 4px; }
-  .quick small { display: block; color: var(--muted); font-weight: 500; font-size: 11px; margin-top: 2px; }
-  .quick small.open { color: #2f6d4f; }
-  .quick small.closed { color: var(--terra-deep); }
+  .quick a:hover { background: var(--wine-deep); }
+  .quick .ic { display: block; width: 44px; height: 44px; margin: 0 auto 6px; }
+  .quick small { display: block; color: rgba(255,255,255,.75); font-weight: 500; font-size: 11px; margin-top: 2px; }
+  .quick small.open { color: #7fdb9e; }
+  .quick small.closed { color: #ffb08a; }
 
   @media (min-width: 640px) { .quick { grid-template-columns: repeat(4, 1fr); } }
 
