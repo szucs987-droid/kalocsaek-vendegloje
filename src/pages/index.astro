@@ -147,6 +147,12 @@ import Layout from '../layouts/Layout.astro';
       <button role="tab" data-mtab="italok" aria-selected="false" aria-controls="panel-italok">Italok</button>
     </div>
 
+    <div class="menu-panel-wrapper">
+      <aside class="menu-sidebar" aria-hidden="true">
+        <img src="/logo_atlatszo.png" alt="" class="menu-sidebar-img" />
+      </aside>
+      <div class="menu-panel-body">
+
     <!-- Menu panels -->
     <div class="mpanels">
       <div class="mpanel active" id="panel-levesek" data-mpanel="levesek" role="tabpanel">
@@ -339,6 +345,9 @@ import Layout from '../layouts/Layout.astro';
     <div class="menu-cta">
       <a class="btn btn-wine-outline" href="#">Teljes étlap letöltése (PDF)</a>
     </div>
+
+      </div><!-- /menu-panel-body -->
+    </div><!-- /menu-panel-wrapper -->
   </section>
 
   <!-- ===== OFFERS ===== -->
@@ -518,6 +527,12 @@ import Layout from '../layouts/Layout.astro';
     background:
       url('/logo_atlatszo.png') center / contain no-repeat,
       radial-gradient(circle closest-side at 50% 50%, rgba(255,255,255,.9) 0%, rgba(255,255,255,.9) 80%, rgba(255,255,255,0) 100%);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .brandmark.menu-active {
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
   }
 
   .links {
@@ -874,6 +889,52 @@ import Layout from '../layouts/Layout.astro';
   .mtabs button:hover { border-color: var(--wine); color: var(--wine); }
   .mtabs button.active { background: var(--wine); border-color: var(--wine); color: #fff; }
 
+  /* Menu panel wrapper — sidebar + content grid (desktop only) */
+  .menu-panel-wrapper {
+    /* mobile: no special layout — falls through to block */
+  }
+  .menu-sidebar {
+    display: none; /* hidden on mobile & tablet */
+    pointer-events: none;
+  }
+  .menu-sidebar-img {
+    width: min(180px, 100%);
+    height: auto;
+    aspect-ratio: 1;
+    object-fit: contain;
+    opacity: 0.18;
+  }
+
+  @media (min-width: 1200px) {
+    .menu-panel-wrapper {
+      display: grid;
+      /* left column: sidebar | centre column: 680px panel | right: mirror space */
+      grid-template-columns: 1fr 680px 1fr;
+      align-items: start;
+    }
+    .menu-sidebar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: flex-start;
+      grid-column: 1;
+      padding-right: 1.5rem;
+      padding-top: 24px;
+      /* Sticky — stays visible while scrolling through the full menu */
+      position: sticky;
+      top: 130px;
+      align-self: start;
+      /* Hidden until IntersectionObserver adds .visible */
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+    .menu-sidebar.visible {
+      opacity: 1;
+    }
+    .menu-panel-body {
+      grid-column: 2;
+    }
+  }
+
   /* Menu panels */
   .mpanel { display: none; max-width: 680px; margin: 18px auto 0; }
   .mpanel.active { display: block; }
@@ -1184,6 +1245,28 @@ import Layout from '../layouts/Layout.astro';
 </style>
 
 <script>
+  // Hide header logo / show sidebar watermark when menu section is in view
+  (function () {
+    const etlap = document.getElementById('etlap');
+    const brandmark = document.querySelector<HTMLElement>('.brandmark');
+    const sidebar = document.querySelector<HTMLElement>('.menu-sidebar');
+    if (!etlap || !brandmark) return;
+
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        const inMenu = entry.isIntersecting;
+        brandmark.classList.toggle('menu-active', inMenu);
+        sidebar?.classList.toggle('visible', inMenu);
+      },
+      {
+        // Fire when #etlap top crosses below the sticky nav (64px)
+        rootMargin: '-64px 0px 0px 0px',
+        threshold: 0,
+      }
+    );
+    obs.observe(etlap);
+  })();
+
   // Hero background rotation (15s)
   const hero = document.querySelector('.hero') as HTMLElement | null;
   if (hero) {
