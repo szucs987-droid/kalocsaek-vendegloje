@@ -235,11 +235,15 @@ function catId(cat: string) {
       });
       section.open = true;
 
-      // Scroll to section (with a small offset for the sticky header)
-      setTimeout(() => {
-        const top = section.getBoundingClientRect().top + window.scrollY - 80;
+      // Wait two frames so the section fully expands before measuring position
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const stickyBarEl = document.querySelector<HTMLElement>('.sticky-bar');
+        const adminTopbarH = 52;                               // fixed admin-topbar height
+        const stickyBarH  = stickyBarEl ? stickyBarEl.offsetHeight : 120;
+        const offset = adminTopbarH + stickyBarH + 24;        // 24 px breathing room
+        const top = section.getBoundingClientRect().top + window.scrollY - offset;
         window.scrollTo({ top, behavior: 'smooth' });
-      }, 50);
+      }));
 
       syncPills();
     });
