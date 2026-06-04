@@ -885,9 +885,11 @@ function groupBySub(items: MenuItem[]): { sub: string | null; rows: MenuItem[] }
     top: 64px;
     z-index: 5;
     display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
     gap: 7px;
     overflow-x: auto;
-    padding: 12px 0 10px;
+    padding: 12px 16px 10px;
     background: var(--cream);
     border-bottom: 1px solid var(--line);
     scrollbar-width: none;
