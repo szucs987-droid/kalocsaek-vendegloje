@@ -90,8 +90,9 @@ const { title = 'Admin', activeNav = '' } = Astro.props;
     .main-content {
       flex: 1;
       padding: 24px;
-      overflow-x: auto;
       min-width: 0;
+      /* overflow-x NOT set here — table-wrap handles table scroll;
+         leaving this unset lets position:sticky work on the window scroll */
     }
     .page-header {
       display: flex;
