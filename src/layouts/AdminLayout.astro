@@ -63,6 +63,12 @@ const { title = 'Admin', activeNav = '' } = Astro.props;
       display: flex;
       flex-direction: column;
       gap: 2px;
+      /* Stick below the topbar, stay visible while main content scrolls */
+      position: sticky;
+      top: 52px;
+      align-self: flex-start;
+      max-height: calc(100vh - 52px);
+      overflow-y: auto;
     }
     .sidebar-group {
       padding: 8px 14px 4px;
