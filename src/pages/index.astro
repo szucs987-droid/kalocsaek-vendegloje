@@ -303,6 +303,9 @@ function groupBySub(items: MenuItem[]): { sub: string | null; rows: MenuItem[] }
     </div>
 
       </div><!-- /menu-panel-body -->
+      <aside class="menu-sidebar menu-sidebar-right" aria-hidden="true">
+        <img src="/logo_atlatszo.png" alt="" class="menu-sidebar-img" />
+      </aside>
     </div><!-- /menu-panel-wrapper -->
   </section>
 
@@ -947,6 +950,9 @@ function groupBySub(items: MenuItem[]): { sub: string | null; rows: MenuItem[] }
     .menu-sidebar.visible {
       opacity: 1;
     }
+    .menu-sidebar-right {
+      grid-column: 3;
+    }
     .menu-panel-body {
       grid-column: 2;
     }
@@ -1391,14 +1397,14 @@ function groupBySub(items: MenuItem[]): { sub: string | null; rows: MenuItem[] }
   (function () {
     const etlap = document.getElementById('etlap');
     const brandmark = document.querySelector<HTMLElement>('.brandmark');
-    const sidebar = document.querySelector<HTMLElement>('.menu-sidebar');
+    const sidebars = document.querySelectorAll<HTMLElement>('.menu-sidebar');
     if (!etlap || !brandmark) return;
 
     const obs = new IntersectionObserver(
       ([entry]) => {
         const inMenu = entry.isIntersecting;
         brandmark.classList.toggle('menu-active', inMenu);
-        sidebar?.classList.toggle('visible', inMenu);
+        sidebars.forEach(s => s.classList.toggle('visible', inMenu));
       },
       {
         // Fire when #etlap top crosses below the sticky nav (64px)
