@@ -45,7 +45,7 @@ let menuItems: MenuItem[] = [];
 if (db) {
   try {
     const { results } = await db.prepare(
-      'SELECT id, category, subcategory, name, description, price_display, allergens, sort_order FROM menu_items WHERE is_active = 1 ORDER BY sort_order, name'
+      'SELECT id, category, subcategory, name, description, price_display, allergens, sort_order FROM menu_items WHERE is_active = 1 ORDER BY category, sort_order, name'
     ).all<MenuItem>();
     menuItems = results;
   } catch { /* DB nem inicializált — üres menü */ }
@@ -56,7 +56,20 @@ for (const item of menuItems) {
   if (!menuGrouped[item.category]) menuGrouped[item.category] = [];
   menuGrouped[item.category].push(item);
 }
-const menuCategories = Object.keys(menuGrouped);
+const CATEGORY_ORDER = [
+  'Levesek','Sültes tálak','Gyerek menü','Szárnyasok','Kacsasültek',
+  'Sertéssültek','Marhasültek','Pörköltek','Halak','Tészták',
+  'Rántottak','Hamburgerek','Köretek','Saláták, savanyúk',
+  'Szószok, mártások','Desszertek','Italok',
+];
+const menuCategories = Object.keys(menuGrouped).sort((a, b) => {
+  const ai = CATEGORY_ORDER.indexOf(a);
+  const bi = CATEGORY_ORDER.indexOf(b);
+  if (ai === -1 && bi === -1) return a.localeCompare(b, 'hu');
+  if (ai === -1) return 1;
+  if (bi === -1) return -1;
+  return ai - bi;
+});
 
 function slugify(s: string): string {
   return s.toLowerCase()
