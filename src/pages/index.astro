@@ -940,7 +940,7 @@ function groupBySub(items: MenuItem[]): { sub: string | null; rows: MenuItem[] }
       justify-content: center;
       align-items: flex-start;
       grid-column: 1;
-      padding-top: 24px;
+      padding-top: 32px;
       /* Sticky — stays visible while scrolling through the full menu */
       position: sticky;
       top: 130px;
@@ -961,7 +961,7 @@ function groupBySub(items: MenuItem[]): { sub: string | null; rows: MenuItem[] }
   }
 
   /* Menu panels */
-  .mpanel { display: none; max-width: 680px; margin: 18px auto 0; }
+  .mpanel { display: none; max-width: 680px; margin: 32px auto 0; }
   .mpanel.active { display: block; }
 
   .msub {
@@ -1008,7 +1008,7 @@ function groupBySub(items: MenuItem[]): { sub: string | null; rows: MenuItem[] }
 
   .menu-allergen {
     max-width: 680px;
-    margin: 20px auto 0;
+    margin: 32px auto 0;
     color: var(--muted);
     font-size: .78rem;
     line-height: 1.6;
