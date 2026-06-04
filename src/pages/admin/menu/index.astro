@@ -48,6 +48,7 @@ for (const item of items) {
             <thead>
               <tr>
                 <th>Sorrend</th>
+                <th>Kategória</th>
                 <th>Név</th>
                 <th>Leírás</th>
                 <th>Ár</th>
@@ -60,9 +61,11 @@ for (const item of items) {
               {catItems.map((item: any) => (
                 <tr>
                   <td style="color:var(--muted);font-size:.8rem">{item.sort_order}</td>
-                  <td style="font-weight:600">{item.name}
-                    {item.subcategory && <span style="color:var(--muted);font-weight:400;font-size:.8rem"> / {item.subcategory}</span>}
+                  <td style="font-size:.8rem">
+                    <span style="color:var(--wine);font-weight:600">{item.category}</span>
+                    {item.subcategory && <><br/><span style="color:var(--muted)">{item.subcategory}</span></>}
                   </td>
+                  <td style="font-weight:600">{item.name}</td>
                   <td style="color:var(--muted);font-size:.8rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
                     {item.description || '—'}
                   </td>

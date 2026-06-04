@@ -16,9 +16,9 @@ if (db) {
 if (!item) return new Response('Not found', { status: 404 });
 
 const CATEGORIES = [
-  'Levesek','Sültes tálak','Gyerek menu','Szárnyasok','Kacsa','Sertés',
+  'Levesek','Sültes tálak','Gyerek menü','Szárnyasok','Kacsasültek','Sertéssültek',
   'Marhasültek','Pörköltek','Halak','Tészták','Rántottak','Hamburgerek',
-  'Köretek','Saláták','Szószok','Desszertek','Italok'
+  'Köretek','Saláták, savanyúk','Szószok, mártások','Desszertek','Italok'
 ];
 const knownCat = CATEGORIES.includes(item.category);
 ---
