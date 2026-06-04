@@ -113,10 +113,30 @@ export async function GET(_ctx: APIContext) {
   }
 
   try {
-    // D1 executes multiple statements in batch
-    await db.exec(SQL);
+    // D1 does not support multi-statement exec reliably — run each statement individually
+    const statements = SQL
+      .split(';')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0 && !s.startsWith('--'));
+
+    const results: string[] = [];
+    for (const stmt of statements) {
+      try {
+        await db.prepare(stmt).run();
+        // grab just the first keyword for logging
+        results.push(stmt.substring(0, 40).replace(/\s+/g, ' '));
+      } catch (stmtErr: any) {
+        // "table already exists" style errors are acceptable — log and continue
+        const msg: string = stmtErr?.message ?? '';
+        if (!msg.includes('already exists') && !msg.includes('UNIQUE constraint')) {
+          throw stmtErr;
+        }
+        results.push(`[skip] ${stmt.substring(0, 40).replace(/\s+/g, ' ')}`);
+      }
+    }
+
     return new Response(
-      JSON.stringify({ ok: true, message: 'Database initialised successfully.' }),
+      JSON.stringify({ ok: true, message: 'Database initialised successfully.', statements: results.length }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err: any) {
