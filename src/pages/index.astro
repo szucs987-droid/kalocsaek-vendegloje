@@ -1435,8 +1435,9 @@ function groupBySub(items: MenuItem[]): { sub: string | null; rows: MenuItem[] }
     flex-shrink: 0;
   }
   .mbar-hi { background: var(--gold); color: #3a2708 !important; }
-  /* SVG icon: wine/red on gold background — same red as other buttons' bg */
-  .mbar-hi svg { stroke: var(--wine); }
+  /* SVG icon: wine/red on gold background — same red as other buttons' bg
+     Note: higher specificity (0,2,2) needed to beat .mbar a svg (0,1,2) */
+  .mbar a.mbar-hi svg { stroke: var(--wine); }
   .mbar-hi:hover { background: var(--gold-light) !important; }
 
   @media (min-width: 640px) { .mbar { display: none; } }
