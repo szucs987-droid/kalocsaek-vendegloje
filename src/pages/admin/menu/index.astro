@@ -47,12 +47,25 @@ function catId(cat: string) {
 }
 ---
 <AdminLayout title="Étlap kezelés" activeNav="menu">
-  <div class="page-header">
-    <div>
-      <h1>Étlap kezelés</h1>
-      <p>{items.length} tétel összesen</p>
+  {/* Sticky bar: page header + category nav — always rendered so it sticks */}
+  <div class="sticky-bar">
+    <div class="page-header">
+      <div>
+        <h1>Étlap kezelés</h1>
+        <p>{items.length} tétel összesen</p>
+      </div>
+      <a class="btn btn-primary" href="/admin/menu/new">+ Új tétel</a>
     </div>
-    <a class="btn btn-primary" href="/admin/menu/new">+ Új tétel</a>
+    {items.length > 0 && (
+      <div class="cat-nav" id="cat-nav">
+        {categories.map(cat => (
+          <button class="cat-pill" data-target={catId(cat)}>
+            {cat}
+            <span class="pill-count">{grouped[cat].length}</span>
+          </button>
+        ))}
+      </div>
+    )}
   </div>
 
   {items.length === 0 ? (
@@ -63,16 +76,6 @@ function catId(cat: string) {
     </div>
   ) : (
     <>
-      {/* Category nav pills */}
-      <div class="cat-nav" id="cat-nav">
-        {categories.map(cat => (
-          <button class="cat-pill" data-target={catId(cat)}>
-            {cat}
-            <span class="pill-count">{grouped[cat].length}</span>
-          </button>
-        ))}
-      </div>
-
       {/* Category sections — closed by default */}
       {categories.map(cat => (
         <details class="cat-section" id={catId(cat)}>
@@ -129,16 +132,29 @@ function catId(cat: string) {
 </AdminLayout>
 
 <style is:inline>
+  /* Sticky top bar */
+  .sticky-bar {
+    position: sticky;
+    top: 52px;          /* height of admin-topbar */
+    z-index: 40;
+    background: var(--cream2);
+    /* bleed to the edges of main-content's 24px padding */
+    margin: -24px -24px 20px -24px;
+    padding: 16px 24px 0;
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 4px 16px rgba(58,42,34,.07);
+  }
+  /* Override AdminLayout's page-header margin inside sticky bar */
+  .sticky-bar .page-header {
+    margin-bottom: 12px;
+  }
+
   /* Category nav pills */
   .cat-nav {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 20px;
-    padding: 14px 16px;
-    background: var(--paper);
-    border: 1px solid var(--line);
-    border-radius: 12px;
+    padding-bottom: 14px;
   }
   .cat-pill {
     display: inline-flex;
