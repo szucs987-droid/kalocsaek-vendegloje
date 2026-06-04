@@ -20,6 +20,31 @@ for (const item of items) {
   if (!grouped[item.category]) grouped[item.category] = [];
   grouped[item.category].push(item);
 }
+
+// Category order (same as public menu)
+const CATEGORY_ORDER = [
+  'Levesek','Sültes tálak','Gyerek menü','Szárnyasok','Kacsasültek','Sertéssültek',
+  'Marhasültek','Pörköltek','Halak','Tészták','Rántottak','Hamburgerek',
+  'Köretek','Saláták, savanyúk','Szószok, mártások','Desszertek','Italok'
+];
+const categories = Object.keys(grouped).sort((a, b) => {
+  const ai = CATEGORY_ORDER.indexOf(a);
+  const bi = CATEGORY_ORDER.indexOf(b);
+  if (ai !== -1 && bi !== -1) return ai - bi;
+  if (ai !== -1) return -1;
+  if (bi !== -1) return 1;
+  return a.localeCompare(b, 'hu');
+});
+
+// Generate URL-safe ID from category name
+function catId(cat: string) {
+  return 'cat-' + cat
+    .toLowerCase()
+    .replace(/á/g, 'a').replace(/é/g, 'e').replace(/í/g, 'i')
+    .replace(/ó/g, 'o').replace(/ö/g, 'o').replace(/ő/g, 'o')
+    .replace(/ú/g, 'u').replace(/ü/g, 'u').replace(/ű/g, 'u')
+    .replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/, '');
+}
 ---
 <AdminLayout title="Étlap kezelés" activeNav="menu">
   <div class="page-header">
@@ -37,60 +62,119 @@ for (const item of items) {
       <a class="btn btn-primary" href="/admin/menu/new" style="margin-top:16px">+ Első tétel hozzáadása</a>
     </div>
   ) : (
-    Object.entries(grouped).map(([category, catItems]) => (
-      <details class="cat-section" open>
-        <summary class="cat-header">
-          <span class="cat-name">{category}</span>
-          <span class="cat-count">{catItems.length} tétel</span>
-        </summary>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Sorrend</th>
-                <th>Kategória</th>
-                <th>Név</th>
-                <th>Leírás</th>
-                <th>Ár</th>
-                <th>Állapot</th>
-                <th>Kiemelt</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {catItems.map((item: any) => (
+    <>
+      {/* Category nav pills */}
+      <div class="cat-nav" id="cat-nav">
+        {categories.map(cat => (
+          <button class="cat-pill" data-target={catId(cat)}>
+            {cat}
+            <span class="pill-count">{grouped[cat].length}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Category sections — closed by default */}
+      {categories.map(cat => (
+        <details class="cat-section" id={catId(cat)}>
+          <summary class="cat-header">
+            <span class="cat-name">{cat}</span>
+            <span class="cat-count">{grouped[cat].length} tétel</span>
+          </summary>
+          <div class="table-wrap">
+            <table>
+              <thead>
                 <tr>
-                  <td style="color:var(--muted);font-size:.8rem">{item.sort_order}</td>
-                  <td style="font-size:.8rem">
-                    <span style="color:var(--wine);font-weight:600">{item.category}</span>
-                    {item.subcategory && <><br/><span style="color:var(--muted)">{item.subcategory}</span></>}
-                  </td>
-                  <td style="font-weight:600">{item.name}</td>
-                  <td style="color:var(--muted);font-size:.8rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-                    {item.description || '—'}
-                  </td>
-                  <td style="font-family:Georgia,serif;color:var(--wine);white-space:nowrap">{item.price_display || '—'}</td>
-                  <td>
-                    <span class={`badge badge-${item.is_active ? 'active' : 'inactive'}`}>
-                      {item.is_active ? 'Aktív' : 'Rejtett'}
-                    </span>
-                  </td>
-                  <td>{item.is_featured ? '⭐' : ''}</td>
-                  <td style="white-space:nowrap">
-                    <a class="btn btn-sm btn-outline" href={`/admin/menu/${item.id}`}>Szerkesztés</a>
-                    <button class="btn btn-sm btn-danger" style="margin-left:4px" data-delete={item.id}>Törlés</button>
-                  </td>
+                  <th>Sorrend</th>
+                  <th>Kategória</th>
+                  <th>Név</th>
+                  <th>Leírás</th>
+                  <th>Ár</th>
+                  <th>Állapot</th>
+                  <th>Kiemelt</th>
+                  <th></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </details>
-    ))
+              </thead>
+              <tbody>
+                {grouped[cat].map((item: any) => (
+                  <tr>
+                    <td style="color:var(--muted);font-size:.8rem">{item.sort_order}</td>
+                    <td style="font-size:.8rem">
+                      <span style="color:var(--wine);font-weight:600">{item.category}</span>
+                      {item.subcategory && <><br/><span style="color:var(--muted)">{item.subcategory}</span></>}
+                    </td>
+                    <td style="font-weight:600">{item.name}</td>
+                    <td style="color:var(--muted);font-size:.8rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                      {item.description || '—'}
+                    </td>
+                    <td style="font-family:Georgia,serif;color:var(--wine);white-space:nowrap">{item.price_display || '—'}</td>
+                    <td>
+                      <span class={`badge badge-${item.is_active ? 'active' : 'inactive'}`}>
+                        {item.is_active ? 'Aktív' : 'Rejtett'}
+                      </span>
+                    </td>
+                    <td>{item.is_featured ? '⭐' : ''}</td>
+                    <td style="white-space:nowrap">
+                      <a class="btn btn-sm btn-outline" href={`/admin/menu/${item.id}`}>Szerkesztés</a>
+                      <button class="btn btn-sm btn-danger" style="margin-left:4px" data-delete={item.id}>Törlés</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      ))}
+    </>
   )}
 </AdminLayout>
 
 <style is:inline>
+  /* Category nav pills */
+  .cat-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 14px 16px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+  .cat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 13px;
+    border-radius: 20px;
+    border: 1.5px solid var(--line);
+    background: var(--cream2);
+    color: var(--ink);
+    font-size: .82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s, border-color .15s, color .15s;
+    white-space: nowrap;
+  }
+  .cat-pill:hover, .cat-pill.active {
+    background: var(--wine);
+    border-color: var(--wine);
+    color: #fff;
+  }
+  .cat-pill.active .pill-count {
+    background: rgba(255,255,255,.25);
+    color: #fff;
+  }
+  .pill-count {
+    font-size: .72rem;
+    font-weight: 700;
+    background: var(--line);
+    color: var(--muted);
+    border-radius: 10px;
+    padding: 1px 6px;
+    transition: background .15s, color .15s;
+  }
+
+  /* Category accordion sections */
   .cat-section {
     background: var(--paper);
     border: 1px solid var(--line);
@@ -108,9 +192,57 @@ for (const item of items) {
   .cat-header::before { content: '▶'; margin-right: 8px; font-size: .7rem; transition: transform .2s; }
   details[open] .cat-header::before { transform: rotate(90deg); }
   .cat-count { font-family: system-ui; font-weight: 400; font-size: .8rem; color: var(--muted); }
+
+  /* Active pill highlight when section is open */
+  .cat-pill[data-open="true"] {
+    background: var(--wine);
+    border-color: var(--wine);
+    color: #fff;
+  }
+  .cat-pill[data-open="true"] .pill-count {
+    background: rgba(255,255,255,.25);
+    color: #fff;
+  }
 </style>
 
 <script>
+  // --- Category nav pills ---
+  document.querySelectorAll<HTMLButtonElement>('.cat-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      const targetId = pill.dataset.target!;
+      const section = document.getElementById(targetId) as HTMLDetailsElement | null;
+      if (!section) return;
+
+      // Close all other sections, open this one
+      document.querySelectorAll<HTMLDetailsElement>('.cat-section').forEach(d => {
+        if (d.id !== targetId) d.open = false;
+      });
+      section.open = true;
+
+      // Scroll to section (with a small offset for the sticky header)
+      setTimeout(() => {
+        const top = section.getBoundingClientRect().top + window.scrollY - 80;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }, 50);
+
+      syncPills();
+    });
+  });
+
+  // Sync pill active state when sections are toggled manually
+  function syncPills() {
+    document.querySelectorAll<HTMLDetailsElement>('.cat-section').forEach(section => {
+      const pill = document.querySelector<HTMLButtonElement>(`.cat-pill[data-target="${section.id}"]`);
+      if (pill) pill.dataset.open = section.open ? 'true' : 'false';
+    });
+  }
+
+  // Listen for manual toggle of details elements
+  document.querySelectorAll<HTMLDetailsElement>('.cat-section').forEach(section => {
+    section.addEventListener('toggle', syncPills);
+  });
+
+  // --- Delete buttons ---
   document.querySelectorAll('[data-delete]').forEach(btn => {
     btn.addEventListener('click', async () => {
       const id = (btn as HTMLElement).dataset.delete;
