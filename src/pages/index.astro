@@ -2,15 +2,7 @@
 export const prerender = false;
 import Layout from '../layouts/Layout.astro';
 import { cfEnv } from '../lib/env';
-// TODO: allergen chips — menu section is currently static HTML.
-// When the menu is migrated to dynamic DB rendering, add chips like:
-//   {parseAllergens(item.allergens).map(n => (
-//     <span class="al-chip" title={ALLERGENS.find(a => a.id === n)?.name}>{n}</span>
-//   ))}
-// with style: .al-chip { display:inline-flex; align-items:center; justify-content:center;
-//   width:18px; height:18px; border-radius:50%; background:var(--wine); color:#fff;
-//   font-size:.6rem; font-weight:700; margin-left:3px; vertical-align:middle; cursor:default; }
-import { parseAllergens, ALLERGENS } from '../lib/allergens'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import { parseAllergens, ALLERGENS } from '../lib/allergens';
 
 // Fallback képek: akkor látszanak, ha az adatbázis üres vagy nem elérhető.
 // Ha az admin feltölt képeket, ezek helyett azok jelennek meg.
@@ -35,6 +27,54 @@ if (db) {
     ).all<GalleryImage>();
     if (results.length > 0) galleryImages = results;
   } catch { /* DB nem inicializált — fallback képek maradnak */ }
+}
+
+// ===== MENU =====
+type MenuItem = {
+  id: number;
+  category: string;
+  subcategory: string | null;
+  name: string;
+  description: string | null;
+  price_display: string | null;
+  allergens: string | null;
+  sort_order: number;
+};
+
+let menuItems: MenuItem[] = [];
+if (db) {
+  try {
+    const { results } = await db.prepare(
+      'SELECT id, category, subcategory, name, description, price_display, allergens, sort_order FROM menu_items WHERE is_active = 1 ORDER BY sort_order, name'
+    ).all<MenuItem>();
+    menuItems = results;
+  } catch { /* DB nem inicializált — üres menü */ }
+}
+
+const menuGrouped: Record<string, MenuItem[]> = {};
+for (const item of menuItems) {
+  if (!menuGrouped[item.category]) menuGrouped[item.category] = [];
+  menuGrouped[item.category].push(item);
+}
+const menuCategories = Object.keys(menuGrouped);
+
+function slugify(s: string): string {
+  return s.toLowerCase()
+    .replace(/á/g,'a').replace(/é/g,'e').replace(/í/g,'i')
+    .replace(/ó/g,'o').replace(/ö/g,'o').replace(/ő/g,'o')
+    .replace(/ú/g,'u').replace(/ü/g,'u').replace(/ű/g,'u')
+    .replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+}
+
+function groupBySub(items: MenuItem[]): { sub: string | null; rows: MenuItem[] }[] {
+  const seen = new Map<string | null, MenuItem[]>();
+  const order: (string | null)[] = [];
+  for (const item of items) {
+    const sub = item.subcategory || null;
+    if (!seen.has(sub)) { seen.set(sub, []); order.push(sub); }
+    seen.get(sub)!.push(item);
+  }
+  return order.map(sub => ({ sub, rows: seen.get(sub)! }));
 }
 ---
 
@@ -167,23 +207,17 @@ if (db) {
     <!-- Category tabs -->
     <h3 class="menu-section-label" style="margin-top:2.5rem">Teljes étlap</h3>
     <div class="mtabs" role="tablist" aria-label="Étlap kategóriák">
-      <button class="active" role="tab" data-mtab="levesek" aria-selected="true" aria-controls="panel-levesek">Levesek</button>
-      <button role="tab" data-mtab="sultes" aria-selected="false" aria-controls="panel-sultes">Sültes tálak</button>
-      <button role="tab" data-mtab="gyerek" aria-selected="false" aria-controls="panel-gyerek">Gyerek</button>
-      <button role="tab" data-mtab="szarnyas" aria-selected="false" aria-controls="panel-szarnyas">Szárnyasok</button>
-      <button role="tab" data-mtab="kacsa" aria-selected="false" aria-controls="panel-kacsa">Kacsa</button>
-      <button role="tab" data-mtab="sertes" aria-selected="false" aria-controls="panel-sertes">Sertés</button>
-      <button role="tab" data-mtab="marha" aria-selected="false" aria-controls="panel-marha">Marhasültek</button>
-      <button role="tab" data-mtab="porkolt" aria-selected="false" aria-controls="panel-porkolt">Pörköltek</button>
-      <button role="tab" data-mtab="halak" aria-selected="false" aria-controls="panel-halak">Halak</button>
-      <button role="tab" data-mtab="teszta" aria-selected="false" aria-controls="panel-teszta">Tészták</button>
-      <button role="tab" data-mtab="rantott" aria-selected="false" aria-controls="panel-rantott">Rántottak</button>
-      <button role="tab" data-mtab="burger" aria-selected="false" aria-controls="panel-burger">Hamburgerek</button>
-      <button role="tab" data-mtab="koret" aria-selected="false" aria-controls="panel-koret">Köretek</button>
-      <button role="tab" data-mtab="salata" aria-selected="false" aria-controls="panel-salata">Saláták</button>
-      <button role="tab" data-mtab="szosz" aria-selected="false" aria-controls="panel-szosz">Szószok</button>
-      <button role="tab" data-mtab="desszert" aria-selected="false" aria-controls="panel-desszert">Desszertek</button>
-      <button role="tab" data-mtab="italok" aria-selected="false" aria-controls="panel-italok">Italok</button>
+      {menuCategories.map((cat, i) => (
+        <button
+          class={i === 0 ? 'active' : undefined}
+          role="tab"
+          data-mtab={slugify(cat)}
+          aria-selected={i === 0 ? 'true' : 'false'}
+          aria-controls={`panel-${slugify(cat)}`}
+        >
+          {cat.split(',')[0].trim()}
+        </button>
+      ))}
     </div>
 
     <div class="menu-panel-wrapper">
@@ -192,192 +226,41 @@ if (db) {
       </aside>
       <div class="menu-panel-body">
 
-    <!-- Menu panels -->
+    <!-- Menu panels (D1 adatbázisból tölt be dinamikusan, allergénekkel) -->
     <div class="mpanels">
-      <div class="mpanel active" id="panel-levesek" data-mpanel="levesek" role="tabpanel">
-        <div class="mrow"><span class="txt"><span class="nm">Májgombóc leves</span><span class="ds">Házi kézműves májgombóc, leveszöldségekkel.</span></span><span class="mid"></span><span class="pr">1 550 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Erdei gyümölcsleves</span><span class="ds">Erdei gyümölcsök egyvelege, selymes tejszínes alapon.</span></span><span class="mid"></span><span class="pr">1 650 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Tárkonyos raguleves</span><span class="ds">Friss tárkonnyal, pirított csirkemell-kockákkal.</span></span><span class="mid"></span><span class="pr">1 750 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Újházi tyúkhúsleves csigatésztával</span><span class="ds">Lakodalmas tyúkhúsleves zöldségekkel, borsóval, csigatésztával.</span></span><span class="mid"></span><span class="pr">1 850 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Babgulyás füstölt csülökkel</span><span class="ds">Fejtett babbal, füstölt csülökkel, kalocsai paprikával, galuskával.</span></span><span class="mid"></span><span class="pr">1 950 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Marhagulyás</span><span class="ds">Lassú tűzön főtt marhanyak, kalocsai paprikával, burgonyával.</span></span><span class="mid"></span><span class="pr">2 350 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Harcsa halászlé bográcsban</span><span class="ds">Vegyes hal alaplé, afrikai harcsafilével tálalva.</span></span><span class="mid"></span><span class="pr">3 350 Ft</span></div>
-      </div>
-
-      <div class="mpanel" id="panel-sultes" data-mpanel="sultes" role="tabpanel">
-        <div class="msub">2 személyes</div>
-        <div class="mrow"><span class="txt"><span class="nm">Szerelmes tál</span><span class="ds">Háromféle töltött/rántott csirkemell, steak burgonya, párolt rizs.</span></span><span class="mid"></span><span class="pr">9 350 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Csülök tál</span><span class="ds">Egészben sült abált füstölt csülök, párolt lilakáposzta, sült mézes alma, steak burgonya.</span></span><span class="mid"></span><span class="pr">9 350 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Kacsa tál</span><span class="ds">Pácolt rozé kacsamell, konfitált kacsacomb, lilakáposzta, mézes alma, steak burgonya.</span></span><span class="mid"></span><span class="pr">9 950 Ft</span></div>
-        <div class="msub">4 személyes</div>
-        <div class="mrow"><span class="txt"><span class="nm">1957 Retró tál</span><span class="ds">Rántott gomba, sajt, szezámos szelet, cordon bleu, csirke steak, burgonya, rizs.</span></span><span class="mid"></span><span class="pr">18 250 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Családi tál</span><span class="ds">Rántott csirkemell, sajt, mátrai borzas, cigánypecsenye, kanász király lakomája, burgonya, rizs.</span></span><span class="mid"></span><span class="pr">19 900 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Kalocsa tál</span><span class="ds">Séf gomba, hagymakarika, cordon bleu, pelyhes pipi, tomahawk, füstölt csülök, kacsacomb, burgonya, mártogatósok.</span></span><span class="mid"></span><span class="pr">22 900 Ft</span></div>
-      </div>
-
-      <div class="mpanel" id="panel-gyerek" data-mpanel="gyerek" role="tabpanel">
-        <div class="mrow"><span class="txt"><span class="nm">Pelyhes pipi Jr.</span><span class="ds">Gabonapelyhes csirkemell, választható mártogatóssal és körettel.</span></span><span class="mid"></span><span class="pr">2 650 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Három kismalac</span><span class="ds">Sonkás-sajtos panírozott falatok, körettel.</span></span><span class="mid"></span><span class="pr">2 650 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Egér lakoma</span><span class="ds">Bundás (rántott) sajt, körettel.</span></span><span class="mid"></span><span class="pr">2 650 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Csiszi csusza</span><span class="ds">Túrós csusza, tepertővel vagy anélkül.</span></span><span class="mid"></span><span class="pr">2 350 Ft</span></div>
-      </div>
-
-      <div class="mpanel" id="panel-szarnyas" data-mpanel="szarnyas" role="tabpanel">
-        <div class="mrow"><span class="txt"><span class="nm">Vasalt szaftos csirkemell steak</span><span class="ds">Vajon sütött, házi fűszerekbe forgatva.</span></span><span class="mid"></span><span class="pr">3 400 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Pelyhes pipi</span><span class="ds">Kukoricapelyhes csirkemell, fokhagymás mártogatóssal.</span></span><span class="mid"></span><span class="pr">3 550 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Baconba tekert szilvás csirkemell</span><span class="ds">Baconba tekert, szilvával töltött csirkemell.</span></span><span class="mid"></span><span class="pr">3 750 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Áfonyás camemberttel töltött csirkemell</span><span class="ds">Kirántva, áfonyás camembert töltelékkel.</span></span><span class="mid"></span><span class="pr">3 750 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Vermutos csirkemell steak</span><span class="ds">Titkos vermutos-tárkonyos mártással.</span></span><span class="mid"></span><span class="pr">3 750 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Vasalt gyros csirkemell steak</span><span class="ds">Kapros steak, friss salátával, fokhagymás kapormártással.</span></span><span class="mid"></span><span class="pr">3 750 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Szilvapálinkás mázas csirkemell steak</span><span class="ds">Saját szilvapálinkás BBQ-ba forgatva.</span></span><span class="mid"></span><span class="pr">3 950 Ft</span></div>
-      </div>
-
-      <div class="mpanel" id="panel-kacsa" data-mpanel="kacsa" role="tabpanel">
-        <div class="mrow"><span class="txt"><span class="nm">Konfitált kacsacomb párolt káposztával</span><span class="ds">Fokhagymás-rozmaringos kacsacomb.</span></span><span class="mid"></span><span class="pr">4 450 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Kacsa tányéros</span><span class="ds">Konfitált comb + pácolt kacsamell steak, párolt lilakáposztával.</span></span><span class="mid"></span><span class="pr">4 700 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Rozmaringos rozé kacsamell</span><span class="ds">Pácolt kacsamell steak, fokhagymás rozmaringgal.</span></span><span class="mid"></span><span class="pr">5 250 Ft</span></div>
-      </div>
-
-      <div class="mpanel" id="panel-sertes" data-mpanel="sertes" role="tabpanel">
-        <div class="mrow"><span class="txt"><span class="nm">Brassói szűzpecsenye</span><span class="ds">Tradicionális fokhagymás brassói, kockaburgonyával.</span></span><span class="mid"></span><span class="pr">4 750 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Mátrai borzas</span><span class="ds">Burgonya-tésztabundában sült karaj, fűszeres tejföllel, sajttal.</span></span><span class="mid"></span><span class="pr">3 750 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Cigánypecsenye kakastaréjjal</span><span class="ds">Paprikás-fokhagymás tarja, szalonna kakastaréjjal.</span></span><span class="mid"></span><span class="pr">3 850 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Csülök tányéros</span><span class="ds">Abált füstölt csülök, párolt lilakáposzta, tormás mártogatós.</span></span><span class="mid"></span><span class="pr">3 900 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Tomahawk karaj</span><span class="ds">Fűszeres pácban érlelt csontos sertéskaraj.</span></span><span class="mid"></span><span class="pr">4 150 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Lecsó parádé</span><span class="ds">Szaftos tarja, lecsós-kolbászos feltéttel, tükörtojással.</span></span><span class="mid"></span><span class="pr">4 000 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Szende szűz</span><span class="ds">Sertésszűz érmék lestyánba forgatva, baconba tekerve.</span></span><span class="mid"></span><span class="pr">4 250 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Zsenge szűz</span><span class="ds">Borskéregben, egészben sült szűzpecsenye, vékonyra szelve.</span></span><span class="mid"></span><span class="pr">4 350 Ft</span></div>
-      </div>
-
-      <div class="mpanel" id="panel-marha" data-mpanel="marha" role="tabpanel">
-        <div class="msub">25 dkg · Rostélyos / Argentin / Bélszín</div>
-        <div class="mrow"><span class="txt"><span class="nm">New York steak</span><span class="ds">Fokhagymás négyborssal.</span></span><span class="mid"></span><span class="pr">5 700 / 7 700 / 8 700 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Hagymás rostélyos</span><span class="ds">Mustárosan, sült hagymakarikákkal.</span></span><span class="mid"></span><span class="pr">5 900 / 7 900 / 8 900 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Szerencsés marha</span><span class="ds">Whiskys BBQ szósszal.</span></span><span class="mid"></span><span class="pr">6 700 / 8 700 / 9 700 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Részeg marha</span><span class="ds">Szilvapálinka-mázas BBQ-ba forgatva.</span></span><span class="mid"></span><span class="pr">6 700 / 8 700 / 9 700 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Vad marha</span><span class="ds">Vadas mártással, grillzöldséggel, házi szalvétagombóccal.</span></span><span class="mid"></span><span class="pr">7 500 / 9 500 / 10 500 Ft</span></div>
-      </div>
-
-      <div class="mpanel" id="panel-porkolt" data-mpanel="porkolt" role="tabpanel">
-        <div class="mrow"><span class="txt"><span class="nm">Csülök pörkölt</span><span class="ds">Igazi cupákos sertéscsülök-pörkölt.</span></span><span class="mid"></span><span class="pr">3 350 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Pacal pörkölt</span><span class="ds">Ahogy nagymama készítette.</span></span><span class="mid"></span><span class="pr">3 550 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Marha pörkölt</span><span class="ds">Lassú tűzön főtt marhanyak, kalocsai paprikával.</span></span><span class="mid"></span><span class="pr">3 950 Ft</span></div>
-      </div>
-
-      <div class="mpanel" id="panel-halak" data-mpanel="halak" role="tabpanel">
-        <div class="mrow"><span class="txt"><span class="nm">Harcsapaprikás túróscsuszával</span><span class="ds">Afrikai harcsafiléből főzött paprikás.</span></span><span class="mid"></span><span class="pr">5 850 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Panka harcsa</span><span class="ds">Pankó morzsában sült afrikai harcsafilé.</span></span><span class="mid"></span><span class="pr">3 950 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Vaslapon sült kapros-citromos harcsa</span><span class="ds">Friss kaporral, citrommal hirtelen sütve.</span></span><span class="mid"></span><span class="pr">3 850 Ft</span></div>
-      </div>
-
-      <div class="mpanel" id="panel-teszta" data-mpanel="teszta" role="tabpanel">
-        <div class="mrow"><span class="txt"><span class="nm">Túrós csusza</span><span class="ds">Tradicionális, szalonnatepertővel.</span></span><span class="mid"></span><span class="pr">3 350 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Juhtúrós sztrapacska</span><span class="ds">Juhtúróval, tepertővel, lilahagymával.</span></span><span class="mid"></span><span class="pr">3 450 Ft</span></div>
-      </div>
-
-      <div class="mpanel" id="panel-rantott" data-mpanel="rantott" role="tabpanel">
-        <div class="mrow"><span class="txt"><span class="nm">Rántott hagymakarika</span></span><span class="mid"></span><span class="pr">3 050 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Rántott gomba</span></span><span class="mid"></span><span class="pr">3 050 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Rántott sajt</span></span><span class="mid"></span><span class="pr">3 350 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Rántott sertésszelet</span></span><span class="mid"></span><span class="pr">3 350 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Rántott csirkemell</span></span><span class="mid"></span><span class="pr">3 350 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Cordon Bleu</span><span class="ds">Rántott karaj, sajttal-sonkával töltve.</span></span><span class="mid"></span><span class="pr">3 650 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Kanász király lakomája</span><span class="ds">Töltött karaj: füstölt csülök, csemegeuborka, torma, tojás, sajt.</span></span><span class="mid"></span><span class="pr">3 850 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Óriás bécsi szelet</span><span class="ds">Pankó morzsában sült, 30 dkg rántott sertéskaraj.</span></span><span class="mid"></span><span class="pr">4 650 Ft</span></div>
-      </div>
-
-      <div class="mpanel" id="panel-burger" data-mpanel="burger" role="tabpanel">
-        <div class="mrow"><span class="txt"><span class="nm">1957 Retró burger</span><span class="ds">15 dkg marhahús, hamburgerszósz, saláta, uborka, hagyma, paradicsom.</span></span><span class="mid"></span><span class="pr">2 450 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Sajt burger</span><span class="ds">15 dkg marhahús, sajtszósz, dupla sajt, saláta, uborka, paradicsom.</span></span><span class="mid"></span><span class="pr">2 650 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Pipi burger</span><span class="ds">15 dkg pelyhes pipi csirkemell, fokhagymás majonéz, saláta, paradicsom.</span></span><span class="mid"></span><span class="pr">2 450 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Farmer burger</span><span class="ds">15 dkg sertéshús, ranch szósz, bacon, sajt, saláta, hagyma, paradicsom.</span></span><span class="mid"></span><span class="pr">2 650 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Black Jack burger</span><span class="ds">15 dkg marhahús, Whiskys BBQ, bacon, sajt, saláta, hagyma, pirított hagyma.</span></span><span class="mid"></span><span class="pr">2 850 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">BAD Boy burger</span><span class="ds">15 dkg marhahús, chilis majonéz, bacon, sajt, saláta, pirított hagyma, jalapeño.</span></span><span class="mid"></span><span class="pr">2 950 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">BIG Boy burger</span><span class="ds">2×15 dkg marhahús, Big Boy szósz, tripla sajt, saláta, hagyma, uborka, paradicsom.</span></span><span class="mid"></span><span class="pr">3 850 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Hasábburgonya</span><span class="ds">Kis adag, kizárólag hamburger mellé.</span></span><span class="mid"></span><span class="pr">500 Ft</span></div>
-      </div>
-
-      <div class="mpanel" id="panel-koret" data-mpanel="koret" role="tabpanel">
-        <div class="mrow"><span class="txt"><span class="nm">Párolt rizs</span></span><span class="mid"></span><span class="pr">850 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Rizibizi</span></span><span class="mid"></span><span class="pr">950 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Hasábburgonya</span></span><span class="mid"></span><span class="pr">950 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Steak burgonya</span></span><span class="mid"></span><span class="pr">950 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Édesburgonya</span></span><span class="mid"></span><span class="pr">1 450 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Burgonyapüré</span></span><span class="mid"></span><span class="pr">950 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Főtt burgonya</span></span><span class="mid"></span><span class="pr">850 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Petrezselymes burgonya</span></span><span class="mid"></span><span class="pr">950 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Galuska</span></span><span class="mid"></span><span class="pr">950 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Betyár burgonya</span><span class="ds">Gerezdek, kápia, sült hagyma, fokhagyma, füstölt szalonna.</span></span><span class="mid"></span><span class="pr">1 350 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">New York burgonya</span><span class="ds">Hájában sült, fokhagymás tejföllel, sajttal.</span></span><span class="mid"></span><span class="pr">1 350 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Párolt zöldség</span></span><span class="mid"></span><span class="pr">1 550 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Grill zöldség</span></span><span class="mid"></span><span class="pr">1 550 Ft</span></div>
-      </div>
-
-      <div class="mpanel" id="panel-salata" data-mpanel="salata" role="tabpanel">
-        <div class="mrow"><span class="txt"><span class="nm">Csemege uborka</span></span><span class="mid"></span><span class="pr">850 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Kovászos uborka</span></span><span class="mid"></span><span class="pr">850 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Káposztasaláta</span></span><span class="mid"></span><span class="pr">850 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Vegyes vágott</span></span><span class="mid"></span><span class="pr">850 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Csípős almapaprika</span></span><span class="mid"></span><span class="pr">850 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Uborkasaláta</span></span><span class="mid"></span><span class="pr">850 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Tejfölös uborkasaláta</span></span><span class="mid"></span><span class="pr">950 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Párolt lilakáposzta</span></span><span class="mid"></span><span class="pr">950 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Paradicsomsaláta</span></span><span class="mid"></span><span class="pr">1 250 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Coleslaw saláta</span></span><span class="mid"></span><span class="pr">1 350 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Kevert magos saláta</span></span><span class="mid"></span><span class="pr">1 650 Ft</span></div>
-      </div>
-
-      <div class="mpanel" id="panel-szosz" data-mpanel="szosz" role="tabpanel">
-        <div class="mrow"><span class="txt"><span class="nm">Ketchup</span></span><span class="mid"></span><span class="pr">500 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Mustár</span></span><span class="mid"></span><span class="pr">500 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Majonéz</span></span><span class="mid"></span><span class="pr">500 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Tartármártás</span></span><span class="mid"></span><span class="pr">750 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Fokhagymás mártogatós</span></span><span class="mid"></span><span class="pr">750 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Tormás mártogatós</span></span><span class="mid"></span><span class="pr">750 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Csíki mártás</span></span><span class="mid"></span><span class="pr">950 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Whiskys BBQ</span></span><span class="mid"></span><span class="pr">1 050 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Szilvapálinka-mázas BBQ</span></span><span class="mid"></span><span class="pr">1 050 Ft</span></div>
-      </div>
-
-      <div class="mpanel" id="panel-desszert" data-mpanel="desszert" role="tabpanel">
-        <div class="mrow"><span class="txt"><span class="nm">Palacsinta több ízben</span><span class="ds">Kakaós, nutellás, túrós, baracklekváros vagy fahéjas.</span></span><span class="mid"></span><span class="pr">600 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Gesztenyepüré</span><span class="ds">Klasszikus, tejszínhabbal.</span></span><span class="mid"></span><span class="pr">1 450 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Mákos nudli</span><span class="ds">Mákos nudli vanília alapon.</span></span><span class="mid"></span><span class="pr">1 650 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Lávafolyam</span><span class="ds">Francia csokoládés szuflé.</span></span><span class="mid"></span><span class="pr">1 750 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Erdei gyümölcsös sajttorta (vegán)</span><span class="ds">Mascarpone krémes, erdei gyümölcsös réteggel.</span></span><span class="mid"></span><span class="pr">1 750 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Őrség kincse tortaszelet</span><span class="ds">Magyarország tortája 2016 receptje alapján.</span></span><span class="mid"></span><span class="pr">1 850 Ft</span></div>
-      </div>
-
-      <div class="mpanel" id="panel-italok" data-mpanel="italok" role="tabpanel">
-        <div class="msub">Üdítők, vizek</div>
-        <div class="mrow"><span class="txt"><span class="nm">Szóda (1 dl)</span></span><span class="mid"></span><span class="pr">150 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">NaturAqua mentes / szénsavas (0,33 l)</span></span><span class="mid"></span><span class="pr">550 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Coca-Cola, Cola Zéró, Fanta, Sprite (0,25 l)</span></span><span class="mid"></span><span class="pr">650 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Cappy gyümölcslevek (0,25 l)</span><span class="ds">Őszibarack, narancs, alma, körte, eper, ananász.</span></span><span class="mid"></span><span class="pr">700 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Hell energiaital (0,25 l)</span></span><span class="mid"></span><span class="pr">600 Ft</span></div>
-        <div class="msub">Limonádé, házi szörp</div>
-        <div class="mrow"><span class="txt"><span class="nm">Limonádé — citrus / erdei (3 dl / 5 dl / 1 l)</span></span><span class="mid"></span><span class="pr">600 / 1 000 / 2 000 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Házi szörp — bodza / levendula (3 dl / 5 dl / 1 l)</span></span><span class="mid"></span><span class="pr">600 / 1 000 / 2 000 Ft</span></div>
-        <div class="msub">Kávé, forró italok</div>
-        <div class="mrow"><span class="txt"><span class="nm">Eszpresszó</span></span><span class="mid"></span><span class="pr">600 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Cappuccino</span></span><span class="mid"></span><span class="pr">900 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Caffé Latte</span></span><span class="mid"></span><span class="pr">900 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Forró csoki</span></span><span class="mid"></span><span class="pr">750 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Ice Caffé</span></span><span class="mid"></span><span class="pr">1 550 Ft</span></div>
-        <div class="msub">Sörök</div>
-        <div class="mrow"><span class="txt"><span class="nm">Csapolt Gösser (3 dl / 5 dl)</span></span><span class="mid"></span><span class="pr">750 / 1 250 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Soproni Démon / Pilsner Urquell / Krusovice / Heineken (0,5 l)</span></span><span class="mid"></span><span class="pr">1 300 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Sommersby alma (0,33 l)</span></span><span class="mid"></span><span class="pr">1 100 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Heineken 0% / Gösser citrom 0% (0,33 l)</span></span><span class="mid"></span><span class="pr">800 Ft</span></div>
-        <div class="msub">Borok, pezsgő</div>
-        <div class="mrow"><span class="txt"><span class="nm">Frittmann borok (0,75 l / 1 dl)</span><span class="ds">Cserszegi, Irsai Olivér, Rosé, Cabernet, Portugieser, Kékfrankos.</span></span><span class="mid"></span><span class="pr">4 800 / 650 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Varga borok (0,75 l / 1 dl)</span><span class="ds">Olaszrizling, Irsai, Szürkebarát, Rosé, Kékfrankos, Merlot, Bikavér.</span></span><span class="mid"></span><span class="pr">4 800 / 650 Ft</span></div>
-        <div class="mrow"><span class="txt"><span class="nm">Törley pezsgő (0,75 l)</span><span class="ds">Édes, félszáraz, száraz, alkoholmentes.</span></span><span class="mid"></span><span class="pr">4 200 Ft</span></div>
-        <div class="msub">Pálinkák (2–5 cl)</div>
-        <div class="mrow"><span class="txt"><span class="nm">Mihócsa / Márkházi / Rézangyal / Bolyhos</span></span><span class="mid"></span><span class="pr">850–1 600 Ft</span></div>
-        <div class="msub">Röviditalok, likőrök (2–4 cl)</div>
-        <div class="mrow"><span class="txt"><span class="nm">Unikum, Jägermeister, whiskyk, rumok, tequila, vodka, gin, Baileys, Martini</span></span><span class="mid"></span><span class="pr">600–2 300 Ft</span></div>
-      </div>
+      {menuCategories.length > 0 ? menuCategories.map((cat, i) => (
+        <div
+          class={`mpanel${i === 0 ? ' active' : ''}`}
+          id={`panel-${slugify(cat)}`}
+          data-mpanel={slugify(cat)}
+          role="tabpanel"
+        >
+          {groupBySub(menuGrouped[cat]).map(({ sub, rows }) => (
+            <>
+              {sub && <div class="msub">{sub}</div>}
+              {rows.map(item => (
+                <div class="mrow">
+                  <span class="txt">
+                    <span class="nm">
+                      {item.name}
+                      {parseAllergens(item.allergens).map(n => (
+                        <span class="al-chip" title={ALLERGENS.find(a => a.id === n)?.name}>{n}</span>
+                      ))}
+                    </span>
+                    {item.description && <span class="ds">{item.description}</span>}
+                  </span>
+                  <span class="mid"></span>
+                  <span class="pr">{item.price_display || '—'}</span>
+                </div>
+              ))}
+            </>
+          ))}
+        </div>
+      )) : (
+        <div class="mpanel active" style="text-align:center;padding:2rem;color:var(--muted)">
+          <p>Az étlap betöltése folyamatban… Kérjük frissítse az oldalt.</p>
+        </div>
+      )}
     </div>
 
     <p class="menu-allergen"><strong>Allergén tájékoztató:</strong> ételeink tartalmazhatnak gluténtartalmú gabonát, tejet/laktózt, tojást, dió- és mogyoróféléket, szóját, szezámmagot, halat, zellert, mustárt és egyéb allergéneket. Ételallergia esetén kérjük, kérje pincérünk segítségét.</p>
@@ -1062,6 +945,24 @@ if (db) {
   .mrow .ds { display: block; font-weight: 400; color: var(--muted); font-size: .78rem; margin-top: 2px; }
   .mrow .mid { flex: 1 1 auto; min-width: 14px; border-bottom: 1px dotted #cbb89c; transform: translateY(-3px); }
   .mrow .pr { font-family: var(--font-serif); font-weight: 700; color: var(--wine); white-space: nowrap; }
+
+  /* Allergen chip on public menu rows */
+  .al-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 17px; height: 17px;
+    border-radius: 50%;
+    background: var(--wine);
+    color: #fff;
+    font-size: .58rem;
+    font-weight: 800;
+    margin-left: 3px;
+    vertical-align: middle;
+    cursor: default;
+    flex-shrink: 0;
+    line-height: 1;
+  }
 
   .menu-allergen {
     max-width: 680px;
