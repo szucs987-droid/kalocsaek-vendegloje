@@ -885,8 +885,8 @@ function groupBySub(items: MenuItem[]): { sub: string | null; rows: MenuItem[] }
     top: 64px;
     z-index: 5;
     display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;          /* mobile: single scrollable row */
+    justify-content: flex-start;
     gap: 7px;
     overflow-x: auto;
     padding: 12px 16px 10px;
@@ -895,6 +895,13 @@ function groupBySub(items: MenuItem[]): { sub: string | null; rows: MenuItem[] }
     scrollbar-width: none;
   }
   .mtabs::-webkit-scrollbar { display: none; }
+  /* Desktop: wrap + centre */
+  @media (min-width: 768px) {
+    .mtabs {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+  }
   .mtabs button {
     flex: 0 0 auto;
     border: 1.5px solid var(--line);
