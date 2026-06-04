@@ -517,11 +517,15 @@ function groupBySub(items: MenuItem[]): { sub: string | null; rows: MenuItem[] }
       </svg>
       Útvonal
     </a>
-    <!-- Fork and knife icon -->
+    <!-- Open book / menu icon -->
     <a href="#etlap">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M7 3v4m2-4v4m-2 0a2 2 0 0 0 4 0M9 7v14"/>
-        <path d="M17 3v18m0-11h2.5a2.5 2.5 0 0 0 0-5H17"/>
+        <!-- left page -->
+        <path d="M12 7C9.5 5.5 6 5.5 3 6.5V19c3-1 6.5-1 9 .5"/>
+        <!-- right page -->
+        <path d="M12 7c2.5-1.5 6-1.5 9-.5V19c-2.5-1-6-1-9 .5"/>
+        <!-- spine -->
+        <line x1="12" y1="7" x2="12" y2="19.5"/>
       </svg>
       Étlap
     </a>
@@ -1431,8 +1435,8 @@ function groupBySub(items: MenuItem[]): { sub: string | null; rows: MenuItem[] }
     flex-shrink: 0;
   }
   .mbar-hi { background: var(--gold); color: #3a2708 !important; }
-  /* SVG icon: wine/red on gold background */
-  .mbar-hi svg { stroke: var(--wine-deep); }
+  /* SVG icon: wine/red on gold background — same red as other buttons' bg */
+  .mbar-hi svg { stroke: var(--wine); }
   .mbar-hi:hover { background: var(--gold-light) !important; }
 
   @media (min-width: 640px) { .mbar { display: none; } }
