@@ -101,6 +101,15 @@ CREATE TABLE IF NOT EXISTS closed_day_overrides (
   reason     TEXT,
   created_at TEXT    NOT NULL DEFAULT (datetime('now'))
 );
+
+INSERT OR IGNORE INTO gallery_images (cloudinary_id, cloudinary_url, alt_text, sort_order, is_active) VALUES
+  ('external_dish_co_1', 'https://cdn.website.dish.co/media/ea/10/3211641/Kalocsaek-Vendegloje-21122272-1506550899383656-3829873631109190797-o.jpg', 'Kerthelyiség, hangulatvilágítással', 1, 1),
+  ('external_dish_co_2', 'https://cdn.website.dish.co/media/d6/c2/3211626/Kalocsaek-Vendegloje-21083250-1506550879383658-4573451657324914661-o.jpg', 'Belső termünk, tánctérrel', 2, 1),
+  ('external_dish_co_3', 'https://cdn.website.dish.co/media/dc/ad/3211651/Kalocsaek-Vendegloje-21167069-1506550906050322-2998888195887132782-o.jpg', 'Pergola, szőlőlugas a kertben', 3, 1),
+  ('external_dish_co_4', 'https://cdn.website.dish.co/media/dd/47/3211671/Kalocsaek-Vendegloje-130835177-3640366182668773-1406645070084188086-o.jpg', 'Bőséges sültestál', 4, 1),
+  ('external_dish_co_5', 'https://cdn.website.dish.co/media/85/e7/3211621/Kalocsaek-Vendegloje-21083186-1506550972716982-3483539529075078717-o.jpg', 'Rendezvényterem fényfüzérrel', 5, 1),
+  ('external_dish_co_6', 'https://cdn.website.dish.co/media/75/be/3211591/Kalocsaek-Vendegloje-527714-530192393686183-1332935311-n.jpg', 'Kemencés sültek', 6, 1),
+  ('external_dish_co_7', 'https://cdn.website.dish.co/media/65/72/3211601/Kalocsaek-Vendegloje-10492308-865789876793098-6227095371384042938-n.jpg', 'Svédasztalos tálalás rendezvényre', 7, 1);
 `;
 
 export async function GET(_ctx: APIContext) {

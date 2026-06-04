@@ -1,6 +1,32 @@
 ---
 export const prerender = false;
 import Layout from '../layouts/Layout.astro';
+import { cfEnv } from '../lib/env';
+
+// Fallback képek: akkor látszanak, ha az adatbázis üres vagy nem elérhető.
+// Ha az admin feltölt képeket, ezek helyett azok jelennek meg.
+const FALLBACK_GALLERY = [
+  { cloudinary_url: 'https://cdn.website.dish.co/media/ea/10/3211641/Kalocsaek-Vendegloje-21122272-1506550899383656-3829873631109190797-o.jpg', alt_text: 'Kerthelyiség, hangulatvilágítással' },
+  { cloudinary_url: 'https://cdn.website.dish.co/media/d6/c2/3211626/Kalocsaek-Vendegloje-21083250-1506550879383658-4573451657324914661-o.jpg', alt_text: 'Belső termünk, tánctérrel' },
+  { cloudinary_url: 'https://cdn.website.dish.co/media/dc/ad/3211651/Kalocsaek-Vendegloje-21167069-1506550906050322-2998888195887132782-o.jpg', alt_text: 'Pergola, szőlőlugas a kertben' },
+  { cloudinary_url: 'https://cdn.website.dish.co/media/dd/47/3211671/Kalocsaek-Vendegloje-130835177-3640366182668773-1406645070084188086-o.jpg', alt_text: 'Bőséges sültestál' },
+  { cloudinary_url: 'https://cdn.website.dish.co/media/85/e7/3211621/Kalocsaek-Vendegloje-21083186-1506550972716982-3483539529075078717-o.jpg', alt_text: 'Rendezvényterem fényfüzérrel' },
+  { cloudinary_url: 'https://cdn.website.dish.co/media/75/be/3211591/Kalocsaek-Vendegloje-527714-530192393686183-1332935311-n.jpg', alt_text: 'Kemencés sültek' },
+  { cloudinary_url: 'https://cdn.website.dish.co/media/65/72/3211601/Kalocsaek-Vendegloje-10492308-865789876793098-6227095371384042938-n.jpg', alt_text: 'Svédasztalos tálalás rendezvényre' },
+];
+
+type GalleryImage = { cloudinary_url: string; alt_text: string };
+let galleryImages: GalleryImage[] = FALLBACK_GALLERY;
+
+const db = cfEnv.DB;
+if (db) {
+  try {
+    const { results } = await db.prepare(
+      'SELECT cloudinary_url, alt_text FROM gallery_images WHERE is_active = 1 ORDER BY sort_order, uploaded_at DESC'
+    ).all<GalleryImage>();
+    if (results.length > 0) galleryImages = results;
+  } catch { /* DB nem inicializált — fallback képek maradnak */ }
+}
 ---
 
 <Layout>
@@ -463,13 +489,14 @@ import Layout from '../layouts/Layout.astro';
     <div class="eyebrow">Galéria</div>
     <h2>Ízelítő a vendéglőből</h2>
     <div class="slider" data-slider>
-      <img class="slide active" src="https://cdn.website.dish.co/media/ea/10/3211641/Kalocsaek-Vendegloje-21122272-1506550899383656-3829873631109190797-o.jpg" alt="Kerthelyiség, hangulatvilágítással" loading="lazy" />
-      <img class="slide" src="https://cdn.website.dish.co/media/d6/c2/3211626/Kalocsaek-Vendegloje-21083250-1506550879383658-4573451657324914661-o.jpg" alt="Belső termünk, tánctérrel" loading="lazy" />
-      <img class="slide" src="https://cdn.website.dish.co/media/dc/ad/3211651/Kalocsaek-Vendegloje-21167069-1506550906050322-2998888195887132782-o.jpg" alt="Pergola, szőlőlugas a kertben" loading="lazy" />
-      <img class="slide" src="https://cdn.website.dish.co/media/dd/47/3211671/Kalocsaek-Vendegloje-130835177-3640366182668773-1406645070084188086-o.jpg" alt="Bőséges sültestál" loading="lazy" />
-      <img class="slide" src="https://cdn.website.dish.co/media/85/e7/3211621/Kalocsaek-Vendegloje-21083186-1506550972716982-3483539529075078717-o.jpg" alt="Rendezvényterem fényfüzérrel" loading="lazy" />
-      <img class="slide" src="https://cdn.website.dish.co/media/75/be/3211591/Kalocsaek-Vendegloje-527714-530192393686183-1332935311-n.jpg" alt="Kemencés sültek" loading="lazy" />
-      <img class="slide" src="https://cdn.website.dish.co/media/65/72/3211601/Kalocsaek-Vendegloje-10492308-865789876793098-6227095371384042938-n.jpg" alt="Svédasztalos tálalás rendezvényre" loading="lazy" />
+      {galleryImages.map((img, i) => (
+        <img
+          class={i === 0 ? 'slide active' : 'slide'}
+          src={img.cloudinary_url}
+          alt={img.alt_text || 'Galéria kép'}
+          loading="lazy"
+        />
+      ))}
       <button class="snav snav-prev" data-prev aria-label="Előző kép">‹</button>
       <button class="snav snav-next" data-next aria-label="Következő kép">›</button>
       <div class="sdots" role="list" aria-label="Galéria lapozók"></div>
