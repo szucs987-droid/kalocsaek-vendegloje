@@ -276,7 +276,28 @@ function groupBySub(items: MenuItem[]): { sub: string | null; rows: MenuItem[] }
       )}
     </div>
 
-    <p class="menu-allergen"><strong>Allergén tájékoztató:</strong> ételeink tartalmazhatnak gluténtartalmú gabonát, tejet/laktózt, tojást, dió- és mogyoróféléket, szóját, szezámmagot, halat, zellert, mustárt és egyéb allergéneket. Ételallergia esetén kérjük, kérje pincérünk segítségét.</p>
+    <div class="menu-allergen">
+      <strong>Allergén tájékoztató</strong>
+      <ol class="allergen-list">
+        <li>Tojás és abból készült termékek.</li>
+        <li>Tej és abból készült termékek, beleértve a laktózt is.</li>
+        <li>Dió félék és azokból készült termékek.</li>
+        <li>Gomba és gombafélékből készült termékek.</li>
+        <li>Szója és abból készült termékek.</li>
+        <li>Szezámmag és abból készült termékek.</li>
+        <li>Glutént tartalmazó gabonafélék és abból készült termékek.</li>
+        <li>Rákfélék és abból készült termékek.</li>
+        <li>Halak és abból készült termékek.</li>
+        <li>Citrusok és abból készült termékek.</li>
+        <li>Mogyoró félék és azokból készült termékek.</li>
+        <li>Kagyló félék és azokból készült termékek.</li>
+        <li>Csillagfürt és azokból készült termékek.</li>
+        <li>Méz és azokból készült termékek.</li>
+        <li>Zeller és azokból készült termékek.</li>
+        <li>Mustár és azokból készült termékek.</li>
+      </ol>
+      <p class="allergen-note">Ételallergia esetén kérjük, kérje pincérünk segítségét.</p>
+    </div>
     <div class="menu-cta">
       <a class="btn btn-wine-outline" href="#">Teljes étlap letöltése (PDF)</a>
     </div>
@@ -982,9 +1003,28 @@ function groupBySub(items: MenuItem[]): { sub: string | null; rows: MenuItem[] }
     margin: 20px auto 0;
     color: var(--muted);
     font-size: .78rem;
-    text-align: center;
     line-height: 1.6;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 18px;
   }
+  .menu-allergen strong {
+    display: block;
+    color: var(--wine);
+    font-size: .82rem;
+    margin-bottom: 8px;
+    font-family: Georgia, serif;
+  }
+  .allergen-list {
+    margin: 0;
+    padding-left: 22px;
+    columns: 2;
+    column-gap: 24px;
+  }
+  @media (max-width: 600px) { .allergen-list { columns: 1; } }
+  .allergen-list li { margin-bottom: 3px; break-inside: avoid; }
+  .allergen-note { margin: 8px 0 0; font-style: italic; }
   .menu-cta { text-align: center; margin-top: 18px; }
 
   /* ===== OFFER ===== */
