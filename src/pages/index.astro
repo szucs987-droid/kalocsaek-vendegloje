@@ -629,6 +629,7 @@ function groupBySub(items: MenuItem[]): { sub: string | null; rows: MenuItem[] }
     display: flex;
     align-items: center;
     justify-content: center;
+    justify-content: center;
     text-align: center;
     color: #fff;
     overflow: hidden;
@@ -1399,6 +1400,23 @@ function groupBySub(items: MenuItem[]): { sub: string | null; rows: MenuItem[] }
   .mbar-hi:hover { background: var(--gold-light) !important; }
 
   @media (min-width: 640px) { .mbar { display: none; } }
+
+  /* ===== HERO — MOBILE ===== */
+  @media (max-width: 639px) {
+    .hero {
+      min-height: 0;
+      /* Fill from below nav (64px) to above mbar (≈60px).
+         svh = stable viewport height (excludes collapsible browser UI).
+         vh fallback for older mobile browsers. */
+      height: calc(100vh  - 64px - 60px);
+      height: calc(100svh - 64px - 60px);
+    }
+    .hero-inner {
+      /* Reduce vertical padding so content stays truly centred */
+      padding-top: 16px;
+      padding-bottom: 16px;
+    }
+  }
 </style>
 
 <script>
