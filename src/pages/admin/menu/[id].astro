@@ -2,6 +2,7 @@
 export const prerender = false;
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { cfEnv } from '../../../lib/env';
+import { ALLERGENS, parseAllergens } from '../../../lib/allergens';
 
 const db = cfEnv.DB;
 const { id } = Astro.params;
@@ -21,6 +22,7 @@ const CATEGORIES = [
   'Köretek','Saláták, savanyúk','Szószok, mártások','Desszertek','Italok'
 ];
 const knownCat = CATEGORIES.includes(item.category);
+const checkedAllergens = parseAllergens(item.allergens);
 ---
 <AdminLayout title={`Szerkesztés: ${item.name}`} activeNav="menu">
   <div class="page-header">
@@ -71,8 +73,17 @@ const knownCat = CATEGORIES.includes(item.category);
         </div>
       </div>
       <div class="form-group">
-        <label for="allergens">Allergének</label>
-        <input type="text" id="allergens" name="allergens" value={item.allergens || ''} />
+        <label>Allergének (EU 14)</label>
+        <div class="allergen-grid">
+          {ALLERGENS.map(a => (
+            <label class="al-check">
+              <input type="checkbox" name="allergens" value={String(a.id)}
+                     checked={checkedAllergens.includes(a.id)} />
+              <span class="al-num">{a.id}</span>
+              <span class="al-name">{a.name}</span>
+            </label>
+          ))}
+        </div>
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -98,6 +109,15 @@ const knownCat = CATEGORIES.includes(item.category);
       </div>
     </form>
   </div>
+
+  <style is:inline>
+    .allergen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px; margin-top: 4px; }
+    .al-check { display: flex; align-items: center; gap: 6px; font-size: .82rem; cursor: pointer; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--cream2); }
+    .al-check:hover { border-color: var(--gold); }
+    .al-check input { width: 15px; height: 15px; accent-color: var(--wine); cursor: pointer; }
+    .al-num { background: var(--wine); color: #fff; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: .72rem; font-weight: 700; flex-shrink: 0; }
+    .al-name { color: var(--ink); }
+  </style>
 </AdminLayout>
 
 <script define:vars={{ itemId: id }}>
@@ -130,7 +150,7 @@ const knownCat = CATEGORIES.includes(item.category);
       description: fd.get('description') || '',
       price_display: fd.get('price_display') || '',
       price_min: fd.get('price_min') ? Number(fd.get('price_min')) : null,
-      allergens: fd.get('allergens') || '',
+      allergens: Array.from(form.querySelectorAll<HTMLInputElement>('input[name="allergens"]:checked')).map(el => el.value).join(','),
       sort_order: Number(fd.get('sort_order') || 0),
       is_featured: form.querySelector<HTMLInputElement>('#is_featured')?.checked ? 1 : 0,
       is_active: form.querySelector<HTMLInputElement>('#is_active')?.checked ? 1 : 0,

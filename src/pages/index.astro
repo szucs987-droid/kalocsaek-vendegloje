@@ -2,6 +2,15 @@
 export const prerender = false;
 import Layout from '../layouts/Layout.astro';
 import { cfEnv } from '../lib/env';
+// TODO: allergen chips — menu section is currently static HTML.
+// When the menu is migrated to dynamic DB rendering, add chips like:
+//   {parseAllergens(item.allergens).map(n => (
+//     <span class="al-chip" title={ALLERGENS.find(a => a.id === n)?.name}>{n}</span>
+//   ))}
+// with style: .al-chip { display:inline-flex; align-items:center; justify-content:center;
+//   width:18px; height:18px; border-radius:50%; background:var(--wine); color:#fff;
+//   font-size:.6rem; font-weight:700; margin-left:3px; vertical-align:middle; cursor:default; }
+import { parseAllergens, ALLERGENS } from '../lib/allergens'; // eslint-disable-line @typescript-eslint/no-unused-vars
 
 // Fallback képek: akkor látszanak, ha az adatbázis üres vagy nem elérhető.
 // Ha az admin feltölt képeket, ezek helyett azok jelennek meg.
