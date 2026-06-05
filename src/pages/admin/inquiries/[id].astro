@@ -81,7 +81,7 @@ if (db && inquiry.status === 'new') {
     <!-- Admin panel -->
     <div class="card">
       <h2 class="card-title">Admin kezelés</h2>
-      <form id="admin-form">
+      <form id="admin-form" data-inquiry-id={id}>
         <div class="form-group">
           <label for="status-sel">Státusz</label>
           <select id="status-sel" name="status">
@@ -126,31 +126,34 @@ if (db && inquiry.status === 'new') {
   .reply-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
 </style>
 
-<script define:vars={{ inquiryId: id }}>
+<script>
   const form = document.getElementById('admin-form');
-  const msg = document.getElementById('save-msg');
-  form?.addEventListener('submit', async (e) => {
+  const msg  = document.getElementById('save-msg');
+  // Read the inquiry ID from the form's data attribute (set server-side)
+  const inquiryId = form?.dataset.inquiryId;
+
+  form?.addEventListener('submit', async function(e) {
     e.preventDefault();
-    const status = (document.getElementById('status-sel') as HTMLSelectElement).value;
-    const notes = (document.getElementById('notes') as HTMLTextAreaElement).value;
-    const btn = form.querySelector('button') as HTMLButtonElement;
+    const status = document.getElementById('status-sel').value;
+    const notes  = document.getElementById('notes').value;
+    const btn    = form.querySelector('button[type="submit"]');
     btn.disabled = true; btn.textContent = 'Mentés...';
 
-    const res = await fetch(`/api/admin/inquiries/${inquiryId}`, {
+    const res = await fetch('/api/admin/inquiries/' + inquiryId, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status, admin_notes: notes }),
+      body: JSON.stringify({ status: status, admin_notes: notes }),
     });
 
     btn.disabled = false; btn.textContent = 'Mentés';
-    msg!.style.display = 'block';
+    msg.style.display = 'block';
     if (res.ok) {
-      msg!.className = 'alert alert-success';
-      msg!.textContent = 'Sikeresen mentve!';
+      msg.className = 'alert alert-success';
+      msg.textContent = 'Sikeresen mentve!';
     } else {
-      msg!.className = 'alert alert-error';
-      msg!.textContent = 'Hiba történt a mentés során.';
+      msg.className = 'alert alert-error';
+      msg.textContent = 'Hiba történt a mentés során.';
     }
-    setTimeout(() => { msg!.style.display = 'none'; }, 3000);
+    setTimeout(function() { msg.style.display = 'none'; }, 3000);
   });
 </script>
