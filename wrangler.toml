@@ -7,3 +7,7 @@ binding = "DB"
 database_name = "kalocsaek-db"
 database_id = "e7025d7c-ae44-4a60-906b-f8ef38dc4e52"
 migrations_dir = "src/db/migrations"
+
+[vars]
+CLOUDINARY_CLOUD_NAME = "dkwjoydz1"
+CLOUDINARY_UPLOAD_PRESET = "kalocsaek-gallery"
