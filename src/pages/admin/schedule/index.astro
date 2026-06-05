@@ -100,6 +100,10 @@ const DAY_NAMES = ['Vasárnap', 'Hétfő', 'Kedd', 'Szerda', 'Csütörtök', 'P�
   <!-- Weekly Specials -->
   <div class="card">
     <h2 class="card-title">🌟 Heti ajánlatok</h2>
+    <p style="color:var(--muted);font-size:.85rem;margin-bottom:16px">
+      Az <strong>Aktív</strong> állapotú, érvényes dátumú ajánlat automatikusan megjelenik a publikus weboldalon.
+      Egyszerre csak egy ajánlat jelenhet meg (a legfrissebb aktív, amelynek dátuma érvényes).
+    </p>
     <div id="weekly-msg" class="alert" style="display:none"></div>
 
     <!-- Add form -->
@@ -110,20 +114,56 @@ const DAY_NAMES = ['Vasárnap', 'Hétfő', 'Kedd', 'Szerda', 'Csütörtök', 'P�
           <input type="text" id="w-title" name="title" required placeholder="pl. Tavaszi heti menü" />
         </div>
         <div class="form-group">
-          <label for="w-from">Érvényes ettől</label>
+          <label for="w-from">Érvényes ettől *</label>
           <input type="date" id="w-from" name="valid_from" required />
         </div>
         <div class="form-group">
-          <label for="w-to">Érvényes eddig</label>
+          <label for="w-to">Érvényes eddig *</label>
           <input type="date" id="w-to" name="valid_to" required />
         </div>
       </div>
       <div class="form-group">
-        <label for="w-desc">Leírás *</label>
-        <textarea id="w-desc" name="description" rows="3" required placeholder="Az ajánlat részletei (fogások, árak, megjegyzés)"></textarea>
+        <label for="w-desc">Leírás * <span style="font-weight:400;color:var(--muted)">(fogások, árak, megjegyzés — ez jelenik meg a weboldalon)</span></label>
+        <textarea id="w-desc" name="description" rows="4" required placeholder="pl. Hétfő: Gulyásleves + Csirkepaprikás 1990 Ft&#10;Kedd: Lebbencsleves + Töltött káposzta 1990 Ft"></textarea>
       </div>
       <button type="submit" class="btn btn-gold">+ Ajánlat hozzáadása</button>
     </form>
+
+    <!-- Edit modal -->
+    <div id="weekly-edit-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center">
+      <div style="background:var(--paper);border-radius:14px;padding:24px;width:min(600px,95vw);max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.25)">
+        <h3 style="font-family:Georgia,serif;color:var(--wine);margin-bottom:16px">Ajánlat szerkesztése</h3>
+        <form id="weekly-edit-form">
+          <input type="hidden" id="edit-id" name="id" />
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edit-title">Cím *</label>
+              <input type="text" id="edit-title" name="title" required />
+            </div>
+            <div class="form-group">
+              <label for="edit-from">Érvényes ettől *</label>
+              <input type="date" id="edit-from" name="valid_from" required />
+            </div>
+            <div class="form-group">
+              <label for="edit-to">Érvényes eddig *</label>
+              <input type="date" id="edit-to" name="valid_to" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="edit-desc">Leírás *</label>
+            <textarea id="edit-desc" name="description" rows="5" required></textarea>
+          </div>
+          <div class="form-group" style="display:flex;align-items:center;gap:8px">
+            <input type="checkbox" id="edit-active" name="is_active" style="width:auto" />
+            <label for="edit-active" style="margin:0;font-weight:600">Aktív (megjelenik a weboldalon)</label>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button type="submit" class="btn btn-primary">Mentés</button>
+            <button type="button" id="edit-cancel" class="btn btn-outline">Mégse</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
     <!-- List -->
     {weekly.length > 0 && (
@@ -134,7 +174,12 @@ const DAY_NAMES = ['Vasárnap', 'Hétfő', 'Kedd', 'Szerda', 'Csütörtök', 'P�
           </thead>
           <tbody id="weekly-tbody">
             {weekly.map((w: any) => (
-              <tr data-wid={w.id}>
+              <tr data-wid={w.id}
+                data-title={w.title}
+                data-desc={w.description}
+                data-from={w.valid_from}
+                data-to={w.valid_to}
+                data-active={w.is_active ? '1' : '0'}>
                 <td style="font-weight:600">{w.title}</td>
                 <td style="font-size:.85rem;color:var(--muted)">{w.valid_from} – {w.valid_to}</td>
                 <td>
@@ -142,14 +187,24 @@ const DAY_NAMES = ['Vasárnap', 'Hétfő', 'Kedd', 'Szerda', 'Csütörtök', 'P�
                     {w.is_active ? 'Aktív' : 'Inaktív'}
                   </span>
                 </td>
-                <td>
-                  <button class="btn btn-sm btn-danger w-delete" data-id={w.id}>Törlés</button>
+                <td style="white-space:nowrap">
+                  <button class="btn btn-sm btn-outline w-edit" data-id={w.id}>Szerkesztés</button>
+                  <button class="btn btn-sm btn-outline w-toggle"
+                    data-id={w.id}
+                    data-active={w.is_active ? '1' : '0'}
+                    style={`margin-left:4px;${w.is_active ? '' : 'color:var(--wine);border-color:var(--wine)'}`}>
+                    {w.is_active ? 'Deaktivál' : 'Aktivál'}
+                  </button>
+                  <button class="btn btn-sm btn-danger w-delete" data-id={w.id} style="margin-left:4px">Törlés</button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+    )}
+    {weekly.length === 0 && (
+      <p style="color:var(--muted);font-size:.85rem;margin-top:8px">Még nincs heti ajánlat. Adj hozzá egyet a fenti űrlappal.</p>
     )}
   </div>
 </AdminLayout>
@@ -270,6 +325,95 @@ const DAY_NAMES = ['Vasárnap', 'Hétfő', 'Kedd', 'Szerda', 'Csütörtök', 'P�
     setTimeout(() => { weeklyMsg.style.display = 'none'; }, 3000);
   });
 
+  // ===== Weekly: toggle active =====
+  document.querySelectorAll<HTMLButtonElement>('.w-toggle').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      const currentActive = btn.dataset.active === '1';
+      const newActive = currentActive ? 0 : 1;
+      const res = await fetch(`/api/admin/schedule/weekly/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: newActive }),
+      });
+      if (res.ok) {
+        // Update the row's badge and button text without reload
+        const row = btn.closest('tr')!;
+        const badge = row.querySelector('.badge') as HTMLElement;
+        badge.className = `badge badge-${newActive ? 'active' : 'inactive'}`;
+        badge.textContent = newActive ? 'Aktív' : 'Inaktív';
+        btn.dataset.active = String(newActive);
+        btn.textContent = newActive ? 'Deaktivál' : 'Aktivál';
+        row.dataset.active = String(newActive);
+        weeklyMsg.style.display = 'block';
+        weeklyMsg.className = 'alert alert-success';
+        weeklyMsg.textContent = newActive ? 'Ajánlat aktiválva — megjelenik a weboldalon.' : 'Ajánlat deaktiválva.';
+        setTimeout(() => { weeklyMsg.style.display = 'none'; }, 3000);
+      } else {
+        alert('Hiba az állapotváltás során.');
+      }
+    });
+  });
+
+  // ===== Weekly: edit =====
+  const editOverlay = document.getElementById('weekly-edit-overlay') as HTMLElement;
+  const editForm    = document.getElementById('weekly-edit-form') as HTMLFormElement;
+  const editCancel  = document.getElementById('edit-cancel') as HTMLButtonElement;
+
+  document.querySelectorAll<HTMLButtonElement>('.w-edit').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const row = btn.closest('tr') as HTMLTableRowElement;
+      (document.getElementById('edit-id') as HTMLInputElement).value = row.dataset.wid!;
+      (document.getElementById('edit-title') as HTMLInputElement).value = row.dataset.title!;
+      (document.getElementById('edit-from') as HTMLInputElement).value = row.dataset.from!;
+      (document.getElementById('edit-to') as HTMLInputElement).value = row.dataset.to!;
+      (document.getElementById('edit-desc') as HTMLTextAreaElement).value = row.dataset.desc!;
+      (document.getElementById('edit-active') as HTMLInputElement).checked = row.dataset.active === '1';
+      editOverlay.style.display = 'flex';
+    });
+  });
+
+  editCancel.addEventListener('click', () => { editOverlay.style.display = 'none'; });
+  editOverlay.addEventListener('click', (e) => { if (e.target === editOverlay) editOverlay.style.display = 'none'; });
+
+  editForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(editForm);
+    const id = fd.get('id');
+    const body = {
+      title: (fd.get('title') as string).trim(),
+      description: (fd.get('description') as string).trim(),
+      valid_from: fd.get('valid_from') as string,
+      valid_to: fd.get('valid_to') as string,
+      is_active: (document.getElementById('edit-active') as HTMLInputElement).checked ? 1 : 0,
+    };
+    if (!body.title || !body.description || !body.valid_from || !body.valid_to) {
+      alert('Cím, leírás és dátumok kötelezők.');
+      return;
+    }
+    const submitBtn = editForm.querySelector('button[type="submit"]') as HTMLButtonElement;
+    submitBtn.disabled = true; submitBtn.textContent = 'Mentés...';
+    const res = await fetch(`/api/admin/schedule/weekly/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    submitBtn.disabled = false; submitBtn.textContent = 'Mentés';
+    if (res.ok) {
+      weeklyMsg.style.display = 'block';
+      weeklyMsg.className = 'alert alert-success';
+      weeklyMsg.textContent = 'Ajánlat sikeresen módosítva! Oldal frissítése...';
+      editOverlay.style.display = 'none';
+      setTimeout(() => location.reload(), 800);
+    } else {
+      weeklyMsg.style.display = 'block';
+      weeklyMsg.className = 'alert alert-error';
+      weeklyMsg.textContent = 'Hiba a mentés során.';
+      setTimeout(() => { weeklyMsg.style.display = 'none'; }, 3000);
+    }
+  });
+
+  // ===== Weekly: delete =====
   document.querySelectorAll<HTMLButtonElement>('.w-delete').forEach(btn => {
     btn.addEventListener('click', async () => {
       if (!confirm('Biztosan törli ezt az ajánlatot?')) return;

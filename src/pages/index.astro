@@ -79,6 +79,56 @@ function slugify(s: string): string {
     .replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 }
 
+// ===== OFFERS =====
+type WeeklySpecial = {
+  id: number;
+  title: string;
+  description: string;
+  valid_from: string;
+  valid_to: string;
+  is_active: number;
+};
+type DailyOffer = {
+  weekday: number;
+  soup_name: string | null;
+  main_name: string | null;
+  price_full: number;
+  price_main_only: number;
+  is_active: number;
+};
+
+let activeSpecial: WeeklySpecial | null = null;
+let todayDailyOffer: DailyOffer | null = null;
+// JS weekday: 0=Sunday, 1=Monday … 6=Saturday — same as D1 schema
+const todayWeekday = new Date().getDay();
+
+if (db) {
+  try {
+    const [sp, da] = await Promise.all([
+      // Active special whose date range covers today
+      db.prepare(`
+        SELECT * FROM weekly_specials
+        WHERE is_active = 1
+          AND date(valid_from) <= date('now')
+          AND date(valid_to)   >= date('now')
+        ORDER BY valid_from DESC
+        LIMIT 1
+      `).first<WeeklySpecial>(),
+      // Today's daily offer (if active)
+      db.prepare(
+        `SELECT * FROM daily_offers WHERE weekday = ? AND is_active = 1`
+      ).bind(todayWeekday).first<DailyOffer>(),
+    ]);
+    activeSpecial   = sp   ?? null;
+    todayDailyOffer = da   ?? null;
+  } catch { /* DB not yet initialised — offers stay null */ }
+}
+
+// Format daily offer description lines for display
+const DAY_HU = ['Vasárnap','Hétfő','Kedd','Szerda','Csütörtök','Péntek','Szombat'];
+/** Format a price as Hungarian-style thousands: 1990 → "1 990" */
+const fmtPrice = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+
 function groupBySub(items: MenuItem[]): { sub: string | null; rows: MenuItem[] }[] {
   const seen = new Map<string | null, MenuItem[]>();
   const order: (string | null)[] = [];
@@ -313,20 +363,52 @@ function groupBySub(items: MenuItem[]): { sub: string | null; rows: MenuItem[] }
   <section class="offer" id="ajanlat">
     <div class="offer-text">
       <div class="eyebrow eyebrow-light">Aktuális</div>
-      <h2>Heti ajánlatunk</h2>
-      <p>Minden héten friss ajánlatok és napi menü. Nézd meg az e heti kínálatot, és foglalj asztalt vagy rendelj házhoz!</p>
+      {activeSpecial ? (
+        <>
+          <h2>{activeSpecial.title}</h2>
+          <p class="offer-desc">{activeSpecial.description}</p>
+          {(activeSpecial.valid_from || activeSpecial.valid_to) && (
+            <p class="offer-validity">
+              Érvényes: {activeSpecial.valid_from} – {activeSpecial.valid_to}
+            </p>
+          )}
+        </>
+      ) : (
+        <>
+          <h2>Heti ajánlatunk</h2>
+          <p>Minden héten friss ajánlatok és napi menü. Nézd meg az e heti kínálatot, és foglalj asztalt vagy rendelj házhoz!</p>
+        </>
+      )}
       <a class="btn btn-gold" href="https://www.facebook.com/kalocsaekvendegloje" target="_blank" rel="noopener">Heti menü &amp; Facebook</a>
     </div>
     <div class="daily-card">
       <div class="daily-head">
         <span class="daily-dot" aria-hidden="true"></span>Napi ajánlat
       </div>
-      <p class="daily-sub">Hétköznap 11:00–15:00</p>
-      <ul class="daily-list">
-        <li><span>Leves + főétel</span><strong>1 990 Ft</strong></li>
-        <li><span>Csak főétel</span><strong>1 590 Ft</strong></li>
-      </ul>
-      <p class="daily-note">Az aktuális napi menüt keresse Facebook-oldalunkon, vagy hívjon minket.</p>
+      {todayDailyOffer ? (
+        <>
+          <p class="daily-sub">{DAY_HU[todayWeekday]} · 11:00–15:00</p>
+          <ul class="daily-list">
+            {todayDailyOffer.soup_name && (
+              <li class="daily-dish"><span>🍲 Leves</span><strong>{todayDailyOffer.soup_name}</strong></li>
+            )}
+            {todayDailyOffer.main_name && (
+              <li class="daily-dish"><span>🍽️ Főétel</span><strong>{todayDailyOffer.main_name}</strong></li>
+            )}
+            <li><span>Leves + főétel</span><strong>{fmtPrice(todayDailyOffer.price_full)} Ft</strong></li>
+            <li><span>Csak főétel</span><strong>{fmtPrice(todayDailyOffer.price_main_only)} Ft</strong></li>
+          </ul>
+        </>
+      ) : (
+        <>
+          <p class="daily-sub">Hétköznap 11:00–15:00</p>
+          <ul class="daily-list">
+            <li><span>Leves + főétel</span><strong>1 990 Ft</strong></li>
+            <li><span>Csak főétel</span><strong>1 590 Ft</strong></li>
+          </ul>
+          <p class="daily-note">Az aktuális napi menüt keresse Facebook-oldalunkon, vagy hívjon minket.</p>
+        </>
+      )}
     </div>
   </section>
 
@@ -1089,6 +1171,8 @@ function groupBySub(items: MenuItem[]): { sub: string | null; rows: MenuItem[] }
 
   .offer h2 { color: #fff; text-align: left; margin: 4px 0 10px; font-size: 1.6rem; }
   .offer p { color: #f3e3d4; font-size: .95rem; margin: 0 0 16px; }
+  .offer-desc { white-space: pre-line; }
+  .offer-validity { font-size: .82rem !important; color: rgba(255,255,255,.6) !important; margin: -8px 0 16px !important; }
 
   .daily-card {
     background: var(--cream2);
@@ -1124,6 +1208,8 @@ function groupBySub(items: MenuItem[]): { sub: string | null; rows: MenuItem[] }
     border-bottom: 1px dashed var(--line);
   }
   .daily-list strong { font-family: var(--font-serif); color: var(--wine); }
+  .daily-dish { border-bottom: 1px dashed var(--line); padding-bottom: 6px; margin-bottom: 4px; }
+  .daily-dish strong { font-size: .92rem; }
   .daily-note { margin: 12px 0 0; color: var(--muted); font-size: .78rem; }
 
   /* ===== EVENTS ===== */
