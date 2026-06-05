@@ -43,6 +43,24 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://kalocsaekvendegloje.hu
       />
     )}
 
+    <!-- GTM Consent Mode v2 — MUST be before GTM loads -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      // Block analytics by default (GDPR compliant)
+      gtag('consent', 'default', {
+        analytics_storage: 'denied',
+        ad_storage: 'denied',
+        wait_for_update: 500,
+      });
+      // Restore previously granted consent without waiting for banner
+      try {
+        if (localStorage.getItem('kalocsa_cookie') === 'y') {
+          gtag('consent', 'update', { analytics_storage: 'granted' });
+        }
+      } catch(e) {}
+    </script>
+
     <!-- Google Tag Manager -->
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -196,6 +214,45 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://kalocsaekvendegloje.hu
       ::-webkit-scrollbar { width: 8px; }
       ::-webkit-scrollbar-track { background: var(--cream2); }
       ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+
+      /* ===== Cookie banner ===== */
+      #cookie-banner {
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        z-index: 1000;
+        background: var(--wine-deep);
+        color: #f3e3d4;
+        padding: 14px clamp(1rem, 4vw, 2.5rem);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        font-size: .88rem;
+        line-height: 1.5;
+        box-shadow: 0 -2px 16px rgba(0,0,0,.25);
+        transform: translateY(100%);
+        transition: transform .35s ease;
+      }
+      #cookie-banner.visible { transform: translateY(0); }
+      #cookie-banner p { flex: 1; min-width: 200px; margin: 0; }
+      #cookie-banner a { color: var(--gold-light); text-decoration: underline; }
+      .cookie-btns { display: flex; gap: 8px; flex-shrink: 0; }
+      #cookie-accept {
+        padding: 7px 18px; border-radius: 6px; font-size: .85rem; font-weight: 700;
+        cursor: pointer; border: none; background: var(--gold); color: #3a2708;
+        transition: background .15s;
+      }
+      #cookie-accept:hover { background: var(--gold-light); }
+      #cookie-reject {
+        padding: 7px 18px; border-radius: 6px; font-size: .85rem; font-weight: 600;
+        cursor: pointer; border: 1.5px solid rgba(255,255,255,.4); background: transparent; color: #fff;
+        transition: background .15s, border-color .15s;
+      }
+      #cookie-reject:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.7); }
+      /* On mobile, sit above the bottom action bar (64px) */
+      @media (max-width: 639px) {
+        #cookie-banner { bottom: 64px; }
+      }
     </style>
   </head>
   <body>
@@ -203,6 +260,47 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://kalocsaekvendegloje.hu
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PD7FP83J"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
+
+    <!-- Cookie consent banner -->
+    <div id="cookie-banner" role="dialog" aria-label="Süti (cookie) hozzájárulás" aria-live="polite">
+      <p>
+        Ez az oldal Google Analytics sütiket használ a látogatottság méréséhez.
+        A Cloudflare Analytics cookie-mentes és mindig aktív.
+      </p>
+      <div class="cookie-btns">
+        <button id="cookie-accept" type="button">Elfogadom</button>
+        <button id="cookie-reject" type="button">Elutasítom</button>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        var KEY = 'kalocsa_cookie';
+        var banner = document.getElementById('cookie-banner');
+        if (!banner) return;
+
+        // Already decided — hide immediately, no flash
+        try {
+          if (localStorage.getItem(KEY)) { banner.style.display = 'none'; return; }
+        } catch(e) {}
+
+        // Show after a short delay so the page renders first
+        setTimeout(function () { banner.classList.add('visible'); }, 900);
+
+        function decide(accepted) {
+          try { localStorage.setItem(KEY, accepted ? 'y' : 'n'); } catch(e) {}
+          if (accepted && typeof gtag === 'function') {
+            gtag('consent', 'update', { analytics_storage: 'granted' });
+          }
+          banner.classList.remove('visible');
+          setTimeout(function () { banner.style.display = 'none'; }, 380);
+        }
+
+        document.getElementById('cookie-accept').addEventListener('click', function () { decide(true); });
+        document.getElementById('cookie-reject').addEventListener('click', function () { decide(false); });
+      })();
+    </script>
+
     <slot />
   </body>
 </html>
